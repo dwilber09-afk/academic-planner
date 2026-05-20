@@ -1,10 +1,24 @@
 const monthData = [
-  [2026, 6], [2026, 7], [2026, 8], [2026, 9], [2026, 10], [2026, 11],
+  [2026, 4], [2026, 5], [2026, 6], [2026, 7], [2026, 8], [2026, 9], [2026, 10], [2026, 11],
   [2027, 0], [2027, 1], [2027, 2], [2027, 3], [2027, 4], [2027, 5],
 ];
 
-const colors = ["#c5cfbd", "#ddd1df", "#eee4d2", "#b7c4ab", "#d8bed3", "#ebc5b1", "#dec7cf", "#d4e8e6"];
+const colors = ["#d4e8e6", "#eee4d2", "#c5cfbd", "#ddd1df", "#eee4d2", "#b7c4ab", "#d8bed3", "#ebc5b1", "#dec7cf", "#d4e8e6"];
 const stickyColors = ["#fff4c8", "#eaf1dd", "#eee2f0", "#e1f2f0", "#f5ded1"];
+const stickerTypes = {
+  etr: { label: "ETR", color: "#d8bed3" },
+  "504": { label: "504", color: "#d4e8e6" },
+  iep: { label: "IEP", color: "#c5cfbd" },
+  eval: { label: "Eval", color: "#eee4d2" },
+  "re-eval": { label: "Re-Eval", color: "#dec7cf" },
+  consult: { label: "Consult", color: "#e1f2f0" },
+  parent: { label: "Parent Call", color: "#f5ded1" },
+  testing: { label: "Testing", color: "#eaf1dd" },
+  report: { label: "Report Due", color: "#fff4c8" },
+  deadline: { label: "Deadline", color: "#ebc5b1" },
+  "no-school": { label: "No School", color: "#eee2f0" },
+  conference: { label: "Conference", color: "#d7e3cc" },
+};
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const fullWeekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -25,6 +39,8 @@ const state = {
   weekStrokes: [],
   monthNotes: [],
   weekNotes: [],
+  monthStickers: [],
+  weekStickers: [],
 };
 
 const els = {
@@ -41,6 +57,8 @@ const els = {
   highlighterTool: document.querySelector("#highlighterTool"),
   eraserTool: document.querySelector("#eraserTool"),
   addStickyButton: document.querySelector("#addStickyButton"),
+  stickerSelect: document.querySelector("#stickerSelect"),
+  addStickerButton: document.querySelector("#addStickerButton"),
   pencilOnlyInput: document.querySelector("#pencilOnlyInput"),
   todayButton: document.querySelector("#todayButton"),
   exportButton: document.querySelector("#exportButton"),
@@ -54,6 +72,8 @@ const els = {
   weekCanvas: document.querySelector("#weekCanvas"),
   monthStickyLayer: document.querySelector("#monthStickyLayer"),
   weekStickyLayer: document.querySelector("#weekStickyLayer"),
+  monthStickerLayer: document.querySelector("#monthStickerLayer"),
+  weekStickerLayer: document.querySelector("#weekStickerLayer"),
 };
 
 function startOfWeek(date) {
@@ -79,6 +99,10 @@ function keyMonthNotes() {
   return `${keyMonth()}:notes`;
 }
 
+function keyMonthStickers() {
+  return `${keyMonth()}:stickers`;
+}
+
 function weeksForMonth(year, month) {
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
@@ -99,6 +123,10 @@ function keyWeek() {
 
 function keyWeekNotes() {
   return `${keyWeek()}:notes`;
+}
+
+function keyWeekStickers() {
+  return `${keyWeek()}:stickers`;
 }
 
 function keyForMonth(year, month) {
@@ -136,6 +164,18 @@ function readNotes(key) {
 
 function writeNotes(key, notes) {
   localStorage.setItem(key, JSON.stringify(notes));
+}
+
+function readStickers(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function writeStickers(key, stickers) {
+  localStorage.setItem(key, JSON.stringify(stickers));
 }
 
 function formatDay(date) {
@@ -275,6 +315,8 @@ function loadCurrent() {
   state.weekStrokes = readStrokes(keyWeek());
   state.monthNotes = readNotes(keyMonthNotes());
   state.weekNotes = readNotes(keyWeekNotes());
+  state.monthStickers = readStickers(keyMonthStickers());
+  state.weekStickers = readStickers(keyWeekStickers());
 }
 
 function saveCurrent() {
@@ -282,6 +324,8 @@ function saveCurrent() {
   writeStrokes(keyWeek(), state.weekStrokes);
   writeNotes(keyMonthNotes(), state.monthNotes);
   writeNotes(keyWeekNotes(), state.weekNotes);
+  writeStickers(keyMonthStickers(), state.monthStickers);
+  writeStickers(keyWeekStickers(), state.weekStickers);
 }
 
 function collectPlannerBackup() {
@@ -299,12 +343,14 @@ function collectPlannerBackup() {
     data.months[monthKey] = {
       strokes: readStrokes(monthKey),
       notes: readNotes(`${monthKey}:notes`),
+      stickers: readStickers(`${monthKey}:stickers`),
     };
     weeksForMonth(year, month).forEach((week) => {
       const weekKey = keyForWeek(week);
       data.weeks[weekKey] = {
         strokes: readStrokes(weekKey),
         notes: readNotes(`${weekKey}:notes`),
+        stickers: readStickers(`${weekKey}:stickers`),
       };
     });
   });
@@ -334,10 +380,12 @@ function restoreBackup(data) {
   Object.entries(data.months).forEach(([key, value]) => {
     writeStrokes(key, Array.isArray(value.strokes) ? value.strokes : []);
     writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
+    writeStickers(`${key}:stickers`, Array.isArray(value.stickers) ? value.stickers : []);
   });
   Object.entries(data.weeks).forEach(([key, value]) => {
     writeStrokes(key, Array.isArray(value.strokes) ? value.strokes : []);
     writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
+    writeStickers(`${key}:stickers`, Array.isArray(value.stickers) ? value.stickers : []);
   });
   loadCurrent();
   renderAll();
@@ -362,6 +410,7 @@ function renderAll() {
   renderWeekControls();
   renderWeekGrid();
   renderNotes();
+  renderStickers();
   requestAnimationFrame(redraw);
 }
 
@@ -389,6 +438,19 @@ function setNotesForSurface(surface, notes) {
 
 function layerForSurface(surface) {
   return surface === "month" ? els.monthStickyLayer : els.weekStickyLayer;
+}
+
+function stickerLayerForSurface(surface) {
+  return surface === "month" ? els.monthStickerLayer : els.weekStickerLayer;
+}
+
+function stickersForSurface(surface) {
+  return surface === "month" ? state.monthStickers : state.weekStickers;
+}
+
+function setStickersForSurface(surface, stickers) {
+  if (surface === "month") state.monthStickers = stickers;
+  else state.weekStickers = stickers;
 }
 
 function canvasPoint(canvas, event) {
@@ -643,6 +705,116 @@ function attachStickyResize(surface, element, handle) {
   });
 }
 
+function renderStickers() {
+  renderStickersForSurface("month");
+  renderStickersForSurface("week");
+}
+
+function renderStickersForSurface(surface) {
+  const layer = stickerLayerForSurface(surface);
+  layer.innerHTML = "";
+  stickersForSurface(surface).forEach((sticker) => {
+    const config = stickerTypes[sticker.type] || { label: sticker.label || "Event", color: "#eee4d2" };
+    const element = document.createElement("div");
+    element.className = "calendar-sticker";
+    element.style.left = `${sticker.x}px`;
+    element.style.top = `${sticker.y}px`;
+    element.style.width = `${sticker.w}px`;
+    element.style.height = `${sticker.h}px`;
+    element.style.background = sticker.color || config.color;
+    element.dataset.id = sticker.id;
+    element.innerHTML = `
+      <span class="sticker-label">${config.label}</span>
+      <button class="sticker-delete" aria-label="Delete sticker">×</button>
+    `;
+    const deleteButton = element.querySelector(".sticker-delete");
+    deleteButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setStickersForSurface(surface, stickersForSurface(surface).filter((item) => item.id !== sticker.id));
+      saveCurrent();
+      renderStickersForSurface(surface);
+    });
+    attachStickerDrag(surface, element);
+    attachStickerResize(surface, element);
+    layer.append(element);
+  });
+}
+
+function updateSticker(surface, id, patch) {
+  const stickers = stickersForSurface(surface).map((sticker) =>
+    sticker.id === id ? { ...sticker, ...patch } : sticker
+  );
+  setStickersForSurface(surface, stickers);
+  saveCurrent();
+}
+
+function attachStickerDrag(surface, element) {
+  let drag = null;
+  element.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".sticker-delete")) return;
+    state.activeSurface = surface;
+    drag = {
+      startX: event.clientX,
+      startY: event.clientY,
+      originalX: parseFloat(element.style.left || "0"),
+      originalY: parseFloat(element.style.top || "0"),
+    };
+    element.classList.add("dragging");
+    element.setPointerCapture(event.pointerId);
+  });
+  element.addEventListener("pointermove", (event) => {
+    if (!drag) return;
+    const layer = stickerLayerForSurface(surface);
+    const maxX = Math.max(0, layer.clientWidth - element.offsetWidth);
+    const maxY = Math.max(0, layer.clientHeight - element.offsetHeight);
+    const x = Math.min(maxX, Math.max(0, drag.originalX + event.clientX - drag.startX));
+    const y = Math.min(maxY, Math.max(0, drag.originalY + event.clientY - drag.startY));
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+  });
+  element.addEventListener("pointerup", () => {
+    if (!drag) return;
+    updateSticker(surface, element.dataset.id, {
+      x: parseFloat(element.style.left || "0"),
+      y: parseFloat(element.style.top || "0"),
+      w: element.offsetWidth,
+      h: element.offsetHeight,
+    });
+    element.classList.remove("dragging");
+    drag = null;
+  });
+}
+
+function attachStickerResize(surface, element) {
+  new ResizeObserver(() => {
+    updateSticker(surface, element.dataset.id, {
+      w: element.offsetWidth,
+      h: element.offsetHeight,
+    });
+  }).observe(element);
+}
+
+function addSticker() {
+  const surface = state.activeSurface;
+  const layer = stickerLayerForSurface(surface);
+  const existing = stickersForSurface(surface);
+  const type = els.stickerSelect.value;
+  const config = stickerTypes[type];
+  const offset = (existing.length % 5) * 14;
+  const sticker = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    type,
+    x: Math.min(36 + offset, Math.max(0, layer.clientWidth - 120)),
+    y: Math.min(36 + offset, Math.max(0, layer.clientHeight - 40)),
+    w: 98,
+    h: 26,
+    color: config.color,
+  };
+  setStickersForSurface(surface, [...existing, sticker]);
+  saveCurrent();
+  renderStickersForSurface(surface);
+}
+
 function addSticky() {
   const surface = state.activeSurface;
   const layer = layerForSurface(surface);
@@ -697,10 +869,11 @@ els.penTool.addEventListener("click", () => setTool("pen"));
 els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
 els.eraserTool.addEventListener("click", () => setTool("eraser"));
 els.addStickyButton.addEventListener("click", addSticky);
+els.addStickerButton.addEventListener("click", addSticker);
 els.pencilOnlyInput.addEventListener("change", updateInputMode);
 els.todayButton.addEventListener("click", () => {
   if (!goToDate(new Date())) {
-    alert("Today is outside this July 2026 - June 2027 planner.");
+    alert("Today is outside this May 2026 - June 2027 planner.");
   }
 });
 els.exportButton.addEventListener("click", exportBackup);
@@ -729,9 +902,11 @@ els.clearButton.addEventListener("click", () => {
   const surface = state.activeSurface;
   setStrokesForSurface(surface, []);
   setNotesForSurface(surface, []);
+  setStickersForSurface(surface, []);
   saveCurrent();
   redraw();
   renderNotesForSurface(surface);
+  renderStickersForSurface(surface);
 });
 
 window.addEventListener("resize", () => requestAnimationFrame(redraw));

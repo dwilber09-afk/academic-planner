@@ -21,7 +21,7 @@
           <button class="icon-button" id="prevWeek" aria-label="Previous week" title="Previous week">‹</button>
           <div>
             <p class="eyebrow">School Psychology Planner</p>
-            <h1 id="monthTitle">July 2026</h1>
+            <h1 id="monthTitle">May 2026</h1>
           </div>
           <div class="week-nav">
             <select id="weekSelect" aria-label="Week"></select>
@@ -42,6 +42,21 @@
             <input id="sizeInput" type="range" min="1" max="14" value="3" />
           </label>
           <button class="tool sticky-action" id="addStickyButton">Add Post-it</button>
+          <select id="stickerSelect" aria-label="Sticker type">
+            <option value="etr">ETR Meeting</option>
+            <option value="504">504 Meeting</option>
+            <option value="iep">IEP Meeting</option>
+            <option value="eval">Evaluation</option>
+            <option value="re-eval">Re-Eval</option>
+            <option value="consult">Consult</option>
+            <option value="parent">Parent Call</option>
+            <option value="testing">Testing</option>
+            <option value="report">Report Due</option>
+            <option value="deadline">Deadline</option>
+            <option value="no-school">No School</option>
+            <option value="conference">Conference</option>
+          </select>
+          <button class="tool sticker-action" id="addStickerButton">Add Sticker</button>
           <label class="toggle-label">
             <input id="pencilOnlyInput" type="checkbox" checked />
             Pencil only
@@ -64,6 +79,7 @@
             <div id="calendarGrid" class="calendar-grid"></div>
             <canvas id="monthCanvas" aria-label="Month handwriting layer"></canvas>
             <div id="monthStickyLayer" class="sticky-layer" aria-label="Month post-its"></div>
+            <div id="monthStickerLayer" class="sticker-layer" aria-label="Month stickers"></div>
           </div>
         </section>
 
@@ -94,6 +110,7 @@
             <div id="weekGrid" class="week-grid"></div>
             <canvas id="weekCanvas" aria-label="Week handwriting layer"></canvas>
             <div id="weekStickyLayer" class="sticky-layer" aria-label="Week post-its"></div>
+            <div id="weekStickerLayer" class="sticker-layer" aria-label="Week stickers"></div>
           </div>
         </section>
       </section>
