@@ -41,6 +41,7 @@ const els = {
   highlighterTool: document.querySelector("#highlighterTool"),
   eraserTool: document.querySelector("#eraserTool"),
   addStickyButton: document.querySelector("#addStickyButton"),
+  pencilOnlyInput: document.querySelector("#pencilOnlyInput"),
   todayButton: document.querySelector("#todayButton"),
   exportButton: document.querySelector("#exportButton"),
   importButton: document.querySelector("#importButton"),
@@ -398,7 +399,13 @@ function canvasPoint(canvas, event) {
   };
 }
 
+function shouldDrawFromInput(event) {
+  if (!els.pencilOnlyInput.checked) return true;
+  return event.pointerType === "pen";
+}
+
 function beginDraw(canvas, event) {
+  if (!shouldDrawFromInput(event)) return;
   event.preventDefault();
   state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
@@ -457,6 +464,7 @@ function attachDrawing(canvas) {
   canvas.addEventListener("pointercancel", (event) => endDraw(canvas, event));
 
   canvas.addEventListener("touchstart", (event) => {
+    if (els.pencilOnlyInput.checked) return;
     if (Date.now() - state.lastPointerEventAt < 250) return;
     const touch = event.changedTouches[0];
     if (!touch) return;
@@ -466,12 +474,14 @@ function attachDrawing(canvas) {
   }, touchOptions);
 
   canvas.addEventListener("touchmove", (event) => {
+    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id);
     if (touch) moveDraw(canvas, touch);
   }, touchOptions);
 
   canvas.addEventListener("touchend", (event) => {
+    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
     if (touch) endDraw(canvas, touch);
@@ -479,6 +489,7 @@ function attachDrawing(canvas) {
   }, touchOptions);
 
   canvas.addEventListener("touchcancel", (event) => {
+    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
     if (touch) endDraw(canvas, touch);
@@ -494,6 +505,12 @@ function setTool(tool) {
   els.penTool.setAttribute("aria-pressed", String(tool === "pen"));
   els.highlighterTool.setAttribute("aria-pressed", String(tool === "highlighter"));
   els.eraserTool.setAttribute("aria-pressed", String(tool === "eraser"));
+}
+
+function updateInputMode() {
+  const action = els.pencilOnlyInput.checked ? "pan-x pan-y pinch-zoom" : "none";
+  els.monthCanvas.style.touchAction = action;
+  els.weekCanvas.style.touchAction = action;
 }
 
 function renderNotes() {
@@ -680,6 +697,7 @@ els.penTool.addEventListener("click", () => setTool("pen"));
 els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
 els.eraserTool.addEventListener("click", () => setTool("eraser"));
 els.addStickyButton.addEventListener("click", addSticky);
+els.pencilOnlyInput.addEventListener("change", updateInputMode);
 els.todayButton.addEventListener("click", () => {
   if (!goToDate(new Date())) {
     alert("Today is outside this July 2026 - June 2027 planner.");
@@ -721,5 +739,6 @@ window.addEventListener("beforeunload", saveCurrent);
 
 attachDrawing(els.monthCanvas);
 attachDrawing(els.weekCanvas);
+updateInputMode();
 loadCurrent();
 renderAll();
