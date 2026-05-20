@@ -17,6 +17,9 @@ const state = {
   size: 3,
   activeSurface: "month",
   drawing: false,
+  drawingPointerId: null,
+  lastPointerEventAt: 0,
+  touchFallbackActive: false,
   currentStroke: null,
   monthStrokes: [],
   weekStrokes: [],
@@ -397,10 +400,14 @@ function canvasPoint(canvas, event) {
 
 function beginDraw(canvas, event) {
   event.preventDefault();
+  state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
   state.activeSurface = surface;
   state.drawing = true;
-  canvas.setPointerCapture(event.pointerId);
+  state.drawingPointerId = event.pointerId ?? null;
+  if (event.pointerId !== undefined && canvas.setPointerCapture) {
+    canvas.setPointerCapture(event.pointerId);
+  }
   const isHighlighter = state.tool === "highlighter";
   state.currentStroke = {
     tool: state.tool,
@@ -412,7 +419,9 @@ function beginDraw(canvas, event) {
 
 function moveDraw(canvas, event) {
   if (!state.drawing || !state.currentStroke) return;
+  if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
   event.preventDefault();
+  state.lastPointerEventAt = Date.now();
   state.currentStroke.points.push(canvasPoint(canvas, event));
   const surface = surfaceForCanvas(canvas);
   redrawCanvas(canvas, strokesForSurface(surface));
@@ -422,22 +431,59 @@ function moveDraw(canvas, event) {
 
 function endDraw(canvas, event) {
   if (!state.drawing || !state.currentStroke) return;
+  if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
   event.preventDefault();
+  state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
   const strokes = strokesForSurface(surface);
   strokes.push(state.currentStroke);
   setStrokesForSurface(surface, strokes);
   state.currentStroke = null;
   state.drawing = false;
+  state.drawingPointerId = null;
+  state.touchFallbackActive = false;
   saveCurrent();
   redraw();
 }
 
 function attachDrawing(canvas) {
+  const activeTouch = { id: null };
+  const touchOptions = { passive: false };
+
   canvas.addEventListener("pointerdown", (event) => beginDraw(canvas, event));
   canvas.addEventListener("pointermove", (event) => moveDraw(canvas, event));
+  canvas.addEventListener("pointerrawupdate", (event) => moveDraw(canvas, event));
   canvas.addEventListener("pointerup", (event) => endDraw(canvas, event));
   canvas.addEventListener("pointercancel", (event) => endDraw(canvas, event));
+
+  canvas.addEventListener("touchstart", (event) => {
+    if (Date.now() - state.lastPointerEventAt < 250) return;
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    activeTouch.id = touch.identifier;
+    state.touchFallbackActive = true;
+    beginDraw(canvas, touch);
+  }, touchOptions);
+
+  canvas.addEventListener("touchmove", (event) => {
+    if (!state.touchFallbackActive) return;
+    const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id);
+    if (touch) moveDraw(canvas, touch);
+  }, touchOptions);
+
+  canvas.addEventListener("touchend", (event) => {
+    if (!state.touchFallbackActive) return;
+    const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
+    if (touch) endDraw(canvas, touch);
+    activeTouch.id = null;
+  }, touchOptions);
+
+  canvas.addEventListener("touchcancel", (event) => {
+    if (!state.touchFallbackActive) return;
+    const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
+    if (touch) endDraw(canvas, touch);
+    activeTouch.id = null;
+  }, touchOptions);
 }
 
 function setTool(tool) {
