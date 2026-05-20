@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Planner" />
     <meta name="theme-color" content="#f7f2e9" />
-    <title>Synced Academic Planner</title>
+    <title>School Psychology Planner</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -20,7 +20,7 @@
         <header class="topbar">
           <button class="icon-button" id="prevWeek" aria-label="Previous week" title="Previous week">‹</button>
           <div>
-            <p class="eyebrow">Academic Planner</p>
+            <p class="eyebrow">School Psychology Planner</p>
             <h1 id="monthTitle">July 2026</h1>
           </div>
           <div class="week-nav">
@@ -42,6 +42,11 @@
             <input id="sizeInput" type="range" min="1" max="14" value="3" />
           </label>
           <button class="tool sticky-action" id="addStickyButton">Add Post-it</button>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <button class="tool" id="todayButton">Today</button>
+          <button class="tool" id="exportButton">Export Backup</button>
+          <button class="tool" id="importButton">Import Backup</button>
+          <input id="importInput" class="visually-hidden" type="file" accept="application/json,.json" />
           <button class="tool" id="undoButton">Undo</button>
           <button class="tool" id="clearButton">Clear Area</button>
         </section>
@@ -49,7 +54,7 @@
         <section class="month-panel">
           <div class="section-title">
             <h2 id="calendarHeading">Month View</h2>
-            <p>Write meetings here once. They stay visible while weeks change.</p>
+            <p>Write evaluations, consults, meetings, and school-wide dates once.</p>
           </div>
           <div class="calendar-wrap writing-surface" data-surface="month">
             <div id="calendarGrid" class="calendar-grid"></div>
@@ -66,7 +71,7 @@
           <div class="week-wrap writing-surface" data-surface="week">
             <div class="task-sidebar">
               <div class="task-box sage">
-                <h3>Top 3</h3>
+                <h3>Priorities</h3>
                 <span></span><span></span><span></span>
               </div>
               <div class="task-box turquoise">
@@ -74,7 +79,7 @@
                 <span></span><span></span><span></span><span></span>
               </div>
               <div class="task-box lilac">
-                <h3>Assignments</h3>
+                <h3>Evaluations</h3>
                 <span></span><span></span><span></span><span></span>
               </div>
               <div class="task-box clay">

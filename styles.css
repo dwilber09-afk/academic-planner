@@ -1,15 +1,15 @@
 :root {
-  --paper: #f9f5ee;
-  --ink: #292827;
-  --muted: #716f69;
-  --line: #d7d1c8;
-  --sage: #9caf93;
-  --rosemary: #617d57;
-  --lilac: #bba2bf;
-  --plum: #7b4575;
-  --neutral: #e8dcc6;
-  --clay: #d16139;
-  --turquoise: #a0c9c7;
+  --paper: #fbf8f1;
+  --ink: #312f2c;
+  --muted: #807b73;
+  --line: #ded7cc;
+  --sage: #b7c4ab;
+  --rosemary: #7f9477;
+  --lilac: #d1c2d4;
+  --plum: #a984a3;
+  --neutral: #eee4d2;
+  --clay: #dfa486;
+  --turquoise: #bfdbd9;
   --white: #fffdf8;
 }
 
@@ -42,8 +42,8 @@ input {
   grid-template-columns: 54px minmax(0, 1fr);
   min-height: 100vh;
   background:
-    linear-gradient(135deg, rgba(156, 175, 147, 0.18), transparent 32%),
-    linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(249, 245, 238, 0.96));
+    linear-gradient(135deg, rgba(183, 196, 171, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.92), rgba(251, 248, 241, 0.97));
 }
 
 .month-tabs {
@@ -57,7 +57,7 @@ input {
 }
 
 .month-tab {
-  border: 1px solid rgba(44, 40, 40, 0.13);
+  border: 1px solid rgba(49, 47, 44, 0.1);
   color: var(--ink);
   cursor: pointer;
   min-height: 42px;
@@ -69,7 +69,7 @@ input {
 }
 
 .month-tab.active {
-  outline: 2px solid rgba(44, 40, 40, 0.28);
+  outline: 2px solid rgba(127, 148, 119, 0.35);
 }
 
 .planner {
@@ -200,6 +200,12 @@ select {
   min-height: 36px;
 }
 
+.toolbar-divider {
+  align-self: stretch;
+  border-left: 1px solid rgba(215, 209, 200, 0.9);
+  margin: 0 2px;
+}
+
 .tool {
   border-radius: 6px;
   min-height: 36px;
@@ -213,7 +219,16 @@ select {
 }
 
 .sticky-action {
-  background: rgba(232, 220, 198, 0.78);
+  background: rgba(238, 228, 210, 0.68);
+}
+
+.visually-hidden {
+  height: 1px;
+  left: -9999px;
+  overflow: hidden;
+  position: absolute;
+  top: auto;
+  width: 1px;
 }
 
 .section-title {
@@ -269,7 +284,7 @@ select {
 }
 
 .calendar-head {
-  background: rgba(156, 175, 147, 0.16);
+  background: rgba(183, 196, 171, 0.18);
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -321,19 +336,19 @@ select {
 }
 
 .task-box.sage {
-  background: rgba(158, 175, 148, 0.24);
+  background: rgba(183, 196, 171, 0.22);
 }
 
 .task-box.turquoise {
-  background: rgba(160, 201, 199, 0.27);
+  background: rgba(191, 219, 217, 0.24);
 }
 
 .task-box.lilac {
-  background: rgba(187, 162, 191, 0.27);
+  background: rgba(209, 194, 212, 0.25);
 }
 
 .task-box.clay {
-  background: rgba(209, 97, 57, 0.16);
+  background: rgba(223, 164, 134, 0.18);
 }
 
 .task-box span {
@@ -359,7 +374,7 @@ select {
 }
 
 .week-day header {
-  background: rgba(156, 175, 147, 0.14);
+  background: rgba(183, 196, 171, 0.16);
   border-bottom: 1px solid var(--line);
   min-height: 44px;
   padding: 6px 4px;
@@ -404,7 +419,7 @@ canvas {
 }
 
 .sticky-note {
-  background: #fff1a8;
+  background: #fff4c8;
   border: 1px solid rgba(92, 78, 32, 0.2);
   border-radius: 7px;
   box-shadow: 0 10px 22px rgba(80, 68, 55, 0.16);

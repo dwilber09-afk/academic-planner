@@ -3,8 +3,8 @@ const monthData = [
   [2027, 0], [2027, 1], [2027, 2], [2027, 3], [2027, 4], [2027, 5],
 ];
 
-const colors = ["#9eaf94", "#bba2bf", "#e8dcc6", "#617d57", "#7b4575", "#d16139", "#9d6178", "#a0c9c7"];
-const stickyColors = ["#fff1a8", "#dce8cd", "#e8d9ed", "#d9eeee", "#f3d0bd"];
+const colors = ["#c5cfbd", "#ddd1df", "#eee4d2", "#b7c4ab", "#d8bed3", "#ebc5b1", "#dec7cf", "#d4e8e6"];
+const stickyColors = ["#fff4c8", "#eaf1dd", "#eee2f0", "#e1f2f0", "#f5ded1"];
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const fullWeekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -38,6 +38,10 @@ const els = {
   highlighterTool: document.querySelector("#highlighterTool"),
   eraserTool: document.querySelector("#eraserTool"),
   addStickyButton: document.querySelector("#addStickyButton"),
+  todayButton: document.querySelector("#todayButton"),
+  exportButton: document.querySelector("#exportButton"),
+  importButton: document.querySelector("#importButton"),
+  importInput: document.querySelector("#importInput"),
   undoButton: document.querySelector("#undoButton"),
   clearButton: document.querySelector("#clearButton"),
   colorInput: document.querySelector("#colorInput"),
@@ -93,6 +97,14 @@ function keyWeekNotes() {
   return `${keyWeek()}:notes`;
 }
 
+function keyForMonth(year, month) {
+  return `planner:month:${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+function keyForWeek(week) {
+  return `planner:week:${week.toISOString().slice(0, 10)}`;
+}
+
 function currentWeeks() {
   const [year, month] = monthData[state.monthIndex];
   return weeksForMonth(year, month);
@@ -124,6 +136,23 @@ function writeNotes(key, notes) {
 
 function formatDay(date) {
   return `${monthNames[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
+}
+
+function academicMonthIndexForDate(date) {
+  return monthData.findIndex(([year, month]) => year === date.getFullYear() && month === date.getMonth());
+}
+
+function goToDate(date) {
+  const monthIndex = academicMonthIndexForDate(date);
+  if (monthIndex === -1) return false;
+  saveCurrent();
+  state.monthIndex = monthIndex;
+  const targetWeek = startOfWeek(date).getTime();
+  const weekIndex = currentWeeks().findIndex((week) => week.getTime() === targetWeek);
+  state.weekIndex = Math.max(0, weekIndex);
+  loadCurrent();
+  renderAll();
+  return true;
 }
 
 function renderTabs() {
@@ -251,6 +280,78 @@ function saveCurrent() {
   writeNotes(keyWeekNotes(), state.weekNotes);
 }
 
+function collectPlannerBackup() {
+  saveCurrent();
+  const data = {
+    app: "school-psychology-planner",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    months: {},
+    weeks: {},
+  };
+
+  monthData.forEach(([year, month]) => {
+    const monthKey = keyForMonth(year, month);
+    data.months[monthKey] = {
+      strokes: readStrokes(monthKey),
+      notes: readNotes(`${monthKey}:notes`),
+    };
+    weeksForMonth(year, month).forEach((week) => {
+      const weekKey = keyForWeek(week);
+      data.weeks[weekKey] = {
+        strokes: readStrokes(weekKey),
+        notes: readNotes(`${weekKey}:notes`),
+      };
+    });
+  });
+
+  return data;
+}
+
+function exportBackup() {
+  const data = collectPlannerBackup();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  const today = new Date().toISOString().slice(0, 10);
+  link.href = URL.createObjectURL(blob);
+  link.download = `school-psychology-planner-backup-${today}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(link.href);
+}
+
+function restoreBackup(data) {
+  if (!data || data.app !== "school-psychology-planner" || !data.months || !data.weeks) {
+    alert("This does not look like a planner backup file.");
+    return;
+  }
+
+  Object.entries(data.months).forEach(([key, value]) => {
+    writeStrokes(key, Array.isArray(value.strokes) ? value.strokes : []);
+    writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
+  });
+  Object.entries(data.weeks).forEach(([key, value]) => {
+    writeStrokes(key, Array.isArray(value.strokes) ? value.strokes : []);
+    writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
+  });
+  loadCurrent();
+  renderAll();
+  alert("Planner backup restored.");
+}
+
+function importBackupFile(file) {
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      restoreBackup(JSON.parse(String(reader.result || "")));
+    } catch {
+      alert("I could not read that backup file.");
+    }
+  });
+  reader.readAsText(file);
+}
+
 function renderAll() {
   renderTabs();
   renderCalendar();
@@ -303,7 +404,7 @@ function beginDraw(canvas, event) {
   const isHighlighter = state.tool === "highlighter";
   state.currentStroke = {
     tool: state.tool,
-    color: isHighlighter ? "#f0ce53" : state.color,
+    color: isHighlighter ? "#f6dd7a" : state.color,
     size: state.tool === "eraser" ? state.size * 5 : isHighlighter ? Math.max(10, state.size * 3) : state.size,
     points: [canvasPoint(canvas, event)],
   };
@@ -533,6 +634,18 @@ els.penTool.addEventListener("click", () => setTool("pen"));
 els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
 els.eraserTool.addEventListener("click", () => setTool("eraser"));
 els.addStickyButton.addEventListener("click", addSticky);
+els.todayButton.addEventListener("click", () => {
+  if (!goToDate(new Date())) {
+    alert("Today is outside this July 2026 - June 2027 planner.");
+  }
+});
+els.exportButton.addEventListener("click", exportBackup);
+els.importButton.addEventListener("click", () => els.importInput.click());
+els.importInput.addEventListener("change", () => {
+  const file = els.importInput.files?.[0];
+  if (file) importBackupFile(file);
+  els.importInput.value = "";
+});
 els.colorInput.addEventListener("input", () => {
   state.color = els.colorInput.value;
   setTool("pen");
