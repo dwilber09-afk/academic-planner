@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Planner" />
+    <meta name="theme-color" content="#f7f2e9" />
+    <title>Synced Academic Planner</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <aside class="month-tabs" id="monthTabs" aria-label="Months"></aside>
+
+      <section class="planner">
+        <img class="botanical botanical-top" src="assets/eucalyptus-corner.svg" alt="" />
+        <img class="botanical botanical-bottom" src="assets/ivy-sprig.svg" alt="" />
+        <header class="topbar">
+          <button class="icon-button" id="prevWeek" aria-label="Previous week" title="Previous week">‹</button>
+          <div>
+            <p class="eyebrow">Academic Planner</p>
+            <h1 id="monthTitle">July 2026</h1>
+          </div>
+          <div class="week-nav">
+            <select id="weekSelect" aria-label="Week"></select>
+            <button class="icon-button" id="nextWeek" aria-label="Next week" title="Next week">›</button>
+          </div>
+        </header>
+
+        <section class="toolbar" aria-label="Drawing tools">
+          <button class="tool active" id="penTool" aria-pressed="true">Pen</button>
+          <button class="tool" id="highlighterTool" aria-pressed="false">Highlighter</button>
+          <button class="tool" id="eraserTool" aria-pressed="false">Eraser</button>
+          <label>
+            Color
+            <input id="colorInput" type="color" value="#3a3434" />
+          </label>
+          <label>
+            Size
+            <input id="sizeInput" type="range" min="1" max="14" value="3" />
+          </label>
+          <button class="tool sticky-action" id="addStickyButton">Add Post-it</button>
+          <button class="tool" id="undoButton">Undo</button>
+          <button class="tool" id="clearButton">Clear Area</button>
+        </section>
+
+        <section class="month-panel">
+          <div class="section-title">
+            <h2 id="calendarHeading">Month View</h2>
+            <p>Write meetings here once. They stay visible while weeks change.</p>
+          </div>
+          <div class="calendar-wrap writing-surface" data-surface="month">
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <canvas id="monthCanvas" aria-label="Month handwriting layer"></canvas>
+            <div id="monthStickyLayer" class="sticky-layer" aria-label="Month post-its"></div>
+          </div>
+        </section>
+
+        <section class="week-panel">
+          <div class="section-title">
+            <h2 id="weekHeading">Week View</h2>
+            <p>Weekly tasks and notes save separately for each week.</p>
+          </div>
+          <div class="week-wrap writing-surface" data-surface="week">
+            <div class="task-sidebar">
+              <div class="task-box sage">
+                <h3>Top 3</h3>
+                <span></span><span></span><span></span>
+              </div>
+              <div class="task-box turquoise">
+                <h3>Meetings</h3>
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <div class="task-box lilac">
+                <h3>Assignments</h3>
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <div class="task-box clay">
+                <h3>Follow Up</h3>
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div id="weekGrid" class="week-grid"></div>
+            <canvas id="weekCanvas" aria-label="Week handwriting layer"></canvas>
+            <div id="weekStickyLayer" class="sticky-layer" aria-label="Week post-its"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

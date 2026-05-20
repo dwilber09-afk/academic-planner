@@ -1,0 +1,510 @@
+:root {
+  --paper: #f9f5ee;
+  --ink: #292827;
+  --muted: #716f69;
+  --line: #d7d1c8;
+  --sage: #9caf93;
+  --rosemary: #617d57;
+  --lilac: #bba2bf;
+  --plum: #7b4575;
+  --neutral: #e8dcc6;
+  --clay: #d16139;
+  --turquoise: #a0c9c7;
+  --white: #fffdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  overscroll-behavior: none;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(156, 175, 147, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(249, 245, 238, 0.96));
+}
+
+.month-tabs {
+  display: grid;
+  align-content: stretch;
+  gap: 4px;
+  padding: 12px 8px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.month-tab {
+  border: 1px solid rgba(44, 40, 40, 0.13);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 42px;
+  padding: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.month-tab.active {
+  outline: 2px solid rgba(44, 40, 40, 0.28);
+}
+
+.planner {
+  position: relative;
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: 18px 20px 26px;
+}
+
+.botanical {
+  pointer-events: none;
+  position: fixed;
+  user-select: none;
+  z-index: 0;
+}
+
+.botanical-top {
+  right: 0;
+  top: 0;
+  width: min(34vw, 330px);
+}
+
+.botanical-bottom {
+  bottom: 0;
+  left: 46px;
+  width: min(28vw, 260px);
+}
+
+.topbar,
+.toolbar,
+.month-panel,
+.week-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  min-height: 70px;
+  padding-right: min(18vw, 160px);
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.week-nav {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+select,
+.icon-button,
+.tool {
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+select {
+  border-radius: 6px;
+  min-height: 42px;
+  padding: 0 10px;
+}
+
+.icon-button {
+  align-items: center;
+  border-radius: 50%;
+  display: inline-flex;
+  font-size: 28px;
+  height: 42px;
+  justify-content: center;
+  line-height: 1;
+  width: 42px;
+}
+
+.toolbar {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.64);
+  border: 1px solid rgba(215, 209, 200, 0.9);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 14px;
+  padding: 10px;
+  backdrop-filter: blur(12px);
+}
+
+.toolbar label {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 12px;
+  gap: 7px;
+  min-height: 36px;
+}
+
+.tool {
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.tool.active {
+  background: var(--rosemary);
+  border-color: var(--rosemary);
+  color: white;
+}
+
+.sticky-action {
+  background: rgba(232, 220, 198, 0.78);
+}
+
+.section-title {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 7px;
+}
+
+.section-title p {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.month-panel,
+.week-panel {
+  margin-top: 12px;
+}
+
+.writing-surface {
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 248, 0.88);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(80, 68, 55, 0.08);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+}
+
+.calendar-wrap {
+  min-height: 318px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: 32px repeat(6, 1fr);
+  height: 318px;
+}
+
+.calendar-cell {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  min-width: 0;
+  padding: 5px 7px;
+  position: relative;
+}
+
+.calendar-cell:nth-child(7n) {
+  border-right: 0;
+}
+
+.calendar-head {
+  background: rgba(156, 175, 147, 0.16);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.day-number {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.other-month .day-number {
+  color: rgba(116, 111, 105, 0.55);
+}
+
+.guide-lines {
+  inset: 25px 7px 6px;
+  position: absolute;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 13px,
+    rgba(203, 197, 186, 0.55) 14px
+  );
+}
+
+.week-wrap {
+  display: grid;
+  grid-template-columns: 186px minmax(0, 1fr);
+  min-height: 430px;
+}
+
+.task-sidebar {
+  background: rgba(232, 220, 198, 0.24);
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.task-box {
+  border: 1px solid rgba(44, 40, 40, 0.08);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+}
+
+.task-box.sage {
+  background: rgba(158, 175, 148, 0.24);
+}
+
+.task-box.turquoise {
+  background: rgba(160, 201, 199, 0.27);
+}
+
+.task-box.lilac {
+  background: rgba(187, 162, 191, 0.27);
+}
+
+.task-box.clay {
+  background: rgba(209, 97, 57, 0.16);
+}
+
+.task-box span {
+  border-bottom: 1px solid rgba(116, 111, 105, 0.35);
+  display: block;
+  height: 16px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  min-width: 0;
+}
+
+.week-day {
+  border-right: 1px solid var(--line);
+  min-width: 0;
+  position: relative;
+}
+
+.week-day:last-child {
+  border-right: 0;
+}
+
+.week-day header {
+  background: rgba(156, 175, 147, 0.14);
+  border-bottom: 1px solid var(--line);
+  min-height: 44px;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.week-day strong {
+  display: block;
+  font-size: 12px;
+}
+
+.week-day small {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+}
+
+.week-lines {
+  inset: 58px 8px 10px;
+  position: absolute;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 19px,
+    rgba(203, 197, 186, 0.65) 20px
+  );
+}
+
+canvas {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+  z-index: 5;
+}
+
+.sticky-layer {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 8;
+}
+
+.sticky-note {
+  background: #fff1a8;
+  border: 1px solid rgba(92, 78, 32, 0.2);
+  border-radius: 7px;
+  box-shadow: 0 10px 22px rgba(80, 68, 55, 0.16);
+  display: grid;
+  grid-template-rows: 28px minmax(0, 1fr);
+  min-height: 88px;
+  min-width: 118px;
+  overflow: hidden;
+  pointer-events: auto;
+  position: absolute;
+  resize: both;
+  touch-action: none;
+}
+
+.sticky-note.dragging {
+  opacity: 0.88;
+}
+
+.sticky-bar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: move;
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+  padding: 4px 6px;
+  touch-action: none;
+}
+
+.sticky-dots {
+  color: rgba(41, 40, 39, 0.45);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.sticky-delete {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.5);
+  border: 1px solid rgba(41, 40, 39, 0.12);
+  border-radius: 50%;
+  color: var(--ink);
+  display: inline-flex;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+}
+
+.sticky-note textarea {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font: 14px/1.35 "Iowan Old Style", Georgia, serif;
+  height: 100%;
+  outline: 0;
+  padding: 8px;
+  resize: none;
+  width: 100%;
+}
+
+.sticky-resize {
+  background:
+    linear-gradient(135deg, transparent 0 50%, rgba(41, 40, 39, 0.25) 51% 58%, transparent 59%),
+    linear-gradient(135deg, transparent 0 64%, rgba(41, 40, 39, 0.18) 65% 72%, transparent 73%);
+  bottom: 2px;
+  cursor: nwse-resize;
+  height: 24px;
+  position: absolute;
+  right: 2px;
+  touch-action: none;
+  width: 24px;
+}
+
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .planner {
+    padding: 12px 10px 20px;
+  }
+
+  .topbar,
+  .section-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-title p {
+    text-align: left;
+  }
+
+  .week-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .task-sidebar {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

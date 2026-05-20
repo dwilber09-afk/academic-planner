@@ -1,0 +1,17 @@
+{
+  "name": "Synced Academic Planner",
+  "short_name": "Planner",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f2e9",
+  "theme_color": "#f7f2e9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
