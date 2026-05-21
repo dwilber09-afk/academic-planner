@@ -235,7 +235,7 @@ function setActiveSurface(surface) {
 }
 
 function updateActiveSurfaceFromView() {
-  if (state.drawing) return;
+  if (state.drawing || state.panPoint) return;
   const focusY = window.innerHeight * 0.55;
   const monthRect = els.monthSurface.getBoundingClientRect();
   const weekRect = els.weekSurface.getBoundingClientRect();
@@ -247,15 +247,21 @@ function academicMonthIndexForDate(date) {
   return monthData.findIndex(([year, month]) => year === date.getFullYear() && month === date.getMonth());
 }
 
-function goToDate(date) {
+function setPlannerDate(date) {
   const monthIndex = academicMonthIndexForDate(date);
   if (monthIndex === -1) return false;
-  saveCurrent();
   state.monthIndex = monthIndex;
   const days = currentDays();
   const exactDay = days.findIndex((day) => day.getDate() === date.getDate());
   const nextSchoolDay = days.findIndex((day) => day.getDate() > date.getDate());
   state.dayIndex = exactDay >= 0 ? exactDay : nextSchoolDay >= 0 ? nextSchoolDay : days.length - 1;
+  return true;
+}
+
+function goToDate(date) {
+  if (academicMonthIndexForDate(date) === -1) return false;
+  saveCurrent();
+  setPlannerDate(date);
   loadCurrent();
   renderAll();
   return true;
@@ -566,6 +572,7 @@ function endFingerPan(event) {
     cancelAnimationFrame(state.panFrame);
     state.panFrame = null;
   }
+  requestAnimationFrame(updateActiveSurfaceFromView);
   return true;
 }
 
@@ -1044,6 +1051,7 @@ els.monthSurface.addEventListener("pointerdown", () => setActiveSurface("month")
 els.weekSurface.addEventListener("pointerdown", () => setActiveSurface("week"), true);
 updateInputMode();
 applyZoom(readZoom());
+setPlannerDate(new Date());
 loadCurrent();
 renderAll();
 updateActiveSurfaceFromView();
