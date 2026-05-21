@@ -256,10 +256,13 @@ select {
 }
 
 .floating-mode-tools {
+  --dock-shift-x: 0px;
+  --dock-shift-y: 0px;
   align-items: center;
   background: rgba(255, 253, 248, 0.92);
   border: 1px solid rgba(215, 209, 200, 0.96);
   border-radius: 8px;
+  bottom: max(10px, env(safe-area-inset-bottom));
   box-shadow: 0 12px 30px rgba(80, 68, 55, 0.18);
   display: inline-flex;
   gap: 3px;
@@ -267,9 +270,9 @@ select {
   max-width: calc(100vw - 20px);
   overflow-x: auto;
   padding: 4px;
-  position: absolute;
-  top: 100vh;
-  transform: translate(-50%, calc(-100% - max(10px, env(safe-area-inset-bottom))));
+  position: fixed;
+  touch-action: none;
+  transform: translate(calc(-50% + var(--dock-shift-x)), var(--dock-shift-y));
   z-index: 40;
   backdrop-filter: blur(12px);
 }
@@ -279,6 +282,12 @@ select {
   min-height: 40px;
   min-width: 66px;
   white-space: nowrap;
+}
+
+.floating-mode-tools button,
+.floating-mode-tools input,
+.floating-mode-tools label {
+  touch-action: none;
 }
 
 .dock-divider {

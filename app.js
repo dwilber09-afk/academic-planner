@@ -236,12 +236,14 @@ function changeZoom(step) {
 function updateFloatingDock() {
   const viewport = window.visualViewport;
   if (!viewport) {
-    els.floatingModeTools.style.left = `${window.scrollX + window.innerWidth / 2}px`;
-    els.floatingModeTools.style.top = `${window.scrollY + window.innerHeight}px`;
+    els.floatingModeTools.style.setProperty("--dock-shift-x", "0px");
+    els.floatingModeTools.style.setProperty("--dock-shift-y", "0px");
     return;
   }
-  els.floatingModeTools.style.left = `${viewport.pageLeft + viewport.width / 2}px`;
-  els.floatingModeTools.style.top = `${viewport.pageTop + viewport.height}px`;
+  const shiftX = viewport.offsetLeft;
+  const shiftY = viewport.offsetTop + viewport.height - window.innerHeight;
+  els.floatingModeTools.style.setProperty("--dock-shift-x", `${shiftX}px`);
+  els.floatingModeTools.style.setProperty("--dock-shift-y", `${shiftY}px`);
 }
 
 function setActiveSurface(surface) {
