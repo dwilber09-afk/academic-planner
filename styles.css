@@ -372,6 +372,14 @@ select {
   margin-top: 12px;
 }
 
+.month-panel {
+  margin-bottom: var(--month-zoom-gap, 0px);
+}
+
+.week-panel {
+  padding-bottom: var(--week-zoom-gap, 0px);
+}
+
 .writing-surface {
   border: 1px solid var(--line);
   background: rgba(255, 253, 248, 0.88);
@@ -380,7 +388,8 @@ select {
   overflow: hidden;
   position: relative;
   touch-action: pan-x pan-y;
-  zoom: var(--planner-zoom);
+  transform: scale(var(--planner-zoom));
+  transform-origin: top left;
 }
 
 .writing-surface.active-surface {

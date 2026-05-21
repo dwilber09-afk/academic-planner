@@ -225,11 +225,20 @@ function applyZoom(value) {
   document.documentElement.style.setProperty("--planner-zoom", zoom);
   els.quickZoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
   localStorage.setItem("planner:zoom", String(zoom));
-  requestAnimationFrame(redraw);
+  requestAnimationFrame(() => {
+    updateZoomSpacing(zoom);
+    redraw();
+  });
 }
 
 function changeZoom(step) {
   applyZoom(readZoom() + step);
+}
+
+function updateZoomSpacing(zoom = readZoom()) {
+  const extraHeight = (surface) => `${Math.max(0, surface.offsetHeight * (zoom - 1))}px`;
+  document.documentElement.style.setProperty("--month-zoom-gap", extraHeight(els.monthSurface));
+  document.documentElement.style.setProperty("--week-zoom-gap", extraHeight(els.weekSurface));
 }
 
 function setActiveSurface(surface) {
@@ -1090,6 +1099,7 @@ els.clearButton.addEventListener("click", () => {
 
 window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
+    updateZoomSpacing();
     redraw();
     updateActiveSurfaceFromView();
   });
