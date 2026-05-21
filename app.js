@@ -61,8 +61,8 @@ const els = {
   penTool: document.querySelector("#penTool"),
   highlighterTool: document.querySelector("#highlighterTool"),
   eraserTool: document.querySelector("#eraserTool"),
-  writeModeButton: document.querySelector("#writeModeButton"),
-  moveModeButton: document.querySelector("#moveModeButton"),
+  quickWriteModeButton: document.querySelector("#quickWriteModeButton"),
+  quickMoveModeButton: document.querySelector("#quickMoveModeButton"),
   addStickyButton: document.querySelector("#addStickyButton"),
   stickerSelect: document.querySelector("#stickerSelect"),
   addStickerButton: document.querySelector("#addStickerButton"),
@@ -707,10 +707,10 @@ function setTool(tool) {
 function setInputMode(mode) {
   state.inputMode = mode;
   cancelFingerPan();
-  els.writeModeButton.classList.toggle("active", mode === "write");
-  els.moveModeButton.classList.toggle("active", mode === "move");
-  els.writeModeButton.setAttribute("aria-pressed", String(mode === "write"));
-  els.moveModeButton.setAttribute("aria-pressed", String(mode === "move"));
+  els.quickWriteModeButton.classList.toggle("active", mode === "write");
+  els.quickMoveModeButton.classList.toggle("active", mode === "move");
+  els.quickWriteModeButton.setAttribute("aria-pressed", String(mode === "write"));
+  els.quickMoveModeButton.setAttribute("aria-pressed", String(mode === "move"));
   updateInputMode();
 }
 
@@ -1018,8 +1018,8 @@ els.nextWeek.addEventListener("click", () => {
 els.penTool.addEventListener("click", () => setTool("pen"));
 els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
 els.eraserTool.addEventListener("click", () => setTool("eraser"));
-els.writeModeButton.addEventListener("click", () => setInputMode("write"));
-els.moveModeButton.addEventListener("click", () => setInputMode("move"));
+els.quickWriteModeButton.addEventListener("click", () => setInputMode("write"));
+els.quickMoveModeButton.addEventListener("click", () => setInputMode("move"));
 els.addStickyButton.addEventListener("click", addSticky);
 els.addStickerButton.addEventListener("click", addSticker);
 els.pencilOnlyInput.addEventListener("change", updateInputMode);
