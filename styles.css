@@ -255,6 +255,21 @@ select {
   gap: 4px;
 }
 
+.mode-tools {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+}
+
+.mode-tools .tool {
+  border: 0;
+  min-height: 32px;
+}
+
 .zoom-button {
   font-size: 21px;
   line-height: 1;

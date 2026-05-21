@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#f7f2e9" />
     <title>School Psychology Planner</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=2026-05-21-stylus-handoff-fix" />
+    <link rel="stylesheet" href="styles.css?v=2026-05-21-write-move-mode" />
   </head>
   <body>
     <main class="app">
@@ -33,6 +33,10 @@
           <button class="tool active" id="penTool" aria-pressed="true">Pen</button>
           <button class="tool" id="highlighterTool" aria-pressed="false">Highlighter</button>
           <button class="tool" id="eraserTool" aria-pressed="false">Eraser</button>
+          <div class="mode-tools" aria-label="Planner input mode">
+            <button class="tool active" id="writeModeButton" aria-pressed="true">Write</button>
+            <button class="tool" id="moveModeButton" aria-pressed="false">Move</button>
+          </div>
           <label>
             Color
             <input id="colorInput" type="color" value="#3a3434" />
@@ -131,6 +135,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=2026-05-21-stylus-handoff-fix"></script>
+    <script src="app.js?v=2026-05-21-write-move-mode"></script>
   </body>
 </html>

@@ -27,6 +27,7 @@ const state = {
   monthIndex: 0,
   dayIndex: 0,
   tool: "pen",
+  inputMode: "write",
   color: "#3a3434",
   size: 3,
   activeSurface: "month",
@@ -60,6 +61,8 @@ const els = {
   penTool: document.querySelector("#penTool"),
   highlighterTool: document.querySelector("#highlighterTool"),
   eraserTool: document.querySelector("#eraserTool"),
+  writeModeButton: document.querySelector("#writeModeButton"),
+  moveModeButton: document.querySelector("#moveModeButton"),
   addStickyButton: document.querySelector("#addStickyButton"),
   stickerSelect: document.querySelector("#stickerSelect"),
   addStickerButton: document.querySelector("#addStickerButton"),
@@ -529,17 +532,19 @@ function canvasPoint(canvas, event) {
 }
 
 function shouldDrawFromInput(event) {
+  if (state.inputMode !== "write") return false;
   if (!els.pencilOnlyInput.checked) return true;
   return event.pointerType === "pen" || event.touchType === "stylus";
 }
 
 function shouldDrawFromTouch(touch) {
+  if (state.inputMode !== "write") return false;
   if (!els.pencilOnlyInput.checked) return true;
   return touch?.touchType === "stylus";
 }
 
 function beginFingerPan(canvas, event) {
-  if (!els.pencilOnlyInput.checked || event.pointerType !== "touch") return false;
+  if (state.inputMode !== "move" || !els.pencilOnlyInput.checked || event.pointerType !== "touch") return false;
   event.preventDefault();
   state.panPointerId = event.pointerId ?? null;
   state.panPoint = { x: event.clientX, y: event.clientY };
@@ -699,8 +704,18 @@ function setTool(tool) {
   els.eraserTool.setAttribute("aria-pressed", String(tool === "eraser"));
 }
 
+function setInputMode(mode) {
+  state.inputMode = mode;
+  cancelFingerPan();
+  els.writeModeButton.classList.toggle("active", mode === "write");
+  els.moveModeButton.classList.toggle("active", mode === "move");
+  els.writeModeButton.setAttribute("aria-pressed", String(mode === "write"));
+  els.moveModeButton.setAttribute("aria-pressed", String(mode === "move"));
+  updateInputMode();
+}
+
 function updateInputMode() {
-  const action = els.pencilOnlyInput.checked ? "pinch-zoom" : "none";
+  const action = state.inputMode === "move" ? "pan-x pan-y pinch-zoom" : "none";
   els.monthCanvas.style.touchAction = action;
   els.weekCanvas.style.touchAction = action;
 }
@@ -1003,6 +1018,8 @@ els.nextWeek.addEventListener("click", () => {
 els.penTool.addEventListener("click", () => setTool("pen"));
 els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
 els.eraserTool.addEventListener("click", () => setTool("eraser"));
+els.writeModeButton.addEventListener("click", () => setInputMode("write"));
+els.moveModeButton.addEventListener("click", () => setInputMode("move"));
 els.addStickyButton.addEventListener("click", addSticky);
 els.addStickerButton.addEventListener("click", addSticker);
 els.pencilOnlyInput.addEventListener("change", updateInputMode);
