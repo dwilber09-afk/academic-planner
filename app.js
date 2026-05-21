@@ -765,12 +765,22 @@ function setInputMode(mode) {
   els.quickWriteModeButton.setAttribute("aria-pressed", String(mode === "write"));
   els.quickMoveModeButton.setAttribute("aria-pressed", String(mode === "move"));
   updateInputMode();
+  if (mode === "write") armWritingCanvases();
 }
 
 function updateInputMode() {
   const action = state.inputMode === "move" ? "pan-x pan-y" : "none";
   els.monthCanvas.style.touchAction = action;
   els.weekCanvas.style.touchAction = action;
+}
+
+function armWritingCanvases() {
+  [els.monthCanvas, els.weekCanvas].forEach((canvas) => {
+    canvas.tabIndex = -1;
+    canvas.getBoundingClientRect();
+  });
+  (state.activeSurface === "month" ? els.monthCanvas : els.weekCanvas).focus({ preventScroll: true });
+  requestAnimationFrame(redraw);
 }
 
 function renderNotes() {
@@ -1128,6 +1138,7 @@ attachDrawing(els.weekCanvas);
 els.monthSurface.addEventListener("pointerdown", () => setActiveSurface("month"), true);
 els.weekSurface.addEventListener("pointerdown", () => setActiveSurface("week"), true);
 updateInputMode();
+armWritingCanvases();
 applyZoom(readZoom());
 setPlannerDate(new Date());
 loadCurrent();
