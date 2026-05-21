@@ -25,7 +25,7 @@ const fullWeekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const state = {
   monthIndex: 0,
-  weekIndex: 0,
+  dayIndex: 0,
   tool: "pen",
   color: "#3a3434",
   size: 3,
@@ -36,11 +36,11 @@ const state = {
   touchFallbackActive: false,
   currentStroke: null,
   monthStrokes: [],
-  weekStrokes: [],
+  dayStrokes: [],
   monthNotes: [],
-  weekNotes: [],
+  dayNotes: [],
   monthStickers: [],
-  weekStickers: [],
+  dayStickers: [],
 };
 
 const els = {
@@ -64,12 +64,19 @@ const els = {
   exportButton: document.querySelector("#exportButton"),
   importButton: document.querySelector("#importButton"),
   importInput: document.querySelector("#importInput"),
+  zoomOutButton: document.querySelector("#zoomOutButton"),
+  zoomResetButton: document.querySelector("#zoomResetButton"),
+  zoomInButton: document.querySelector("#zoomInButton"),
+  backupReminder: document.querySelector("#backupReminder"),
+  backupNowButton: document.querySelector("#backupNowButton"),
   undoButton: document.querySelector("#undoButton"),
   clearButton: document.querySelector("#clearButton"),
   colorInput: document.querySelector("#colorInput"),
   sizeInput: document.querySelector("#sizeInput"),
   monthCanvas: document.querySelector("#monthCanvas"),
   weekCanvas: document.querySelector("#weekCanvas"),
+  monthSurface: document.querySelector('[data-surface="month"]'),
+  weekSurface: document.querySelector('[data-surface="week"]'),
   monthStickyLayer: document.querySelector("#monthStickyLayer"),
   weekStickyLayer: document.querySelector("#weekStickyLayer"),
   monthStickerLayer: document.querySelector("#monthStickerLayer"),
@@ -103,43 +110,41 @@ function keyMonthStickers() {
   return `${keyMonth()}:stickers`;
 }
 
-function weeksForMonth(year, month) {
-  const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
-  let cursor = startOfWeek(first);
-  const end = startOfWeek(last);
-  const weeks = [];
-  while (cursor <= end) {
-    weeks.push(new Date(cursor));
-    cursor = addDays(cursor, 7);
+function daysForMonth(year, month) {
+  const days = [];
+  const last = new Date(year, month + 1, 0).getDate();
+  for (let day = 1; day <= last; day++) {
+    const date = new Date(year, month, day);
+    const weekday = date.getDay();
+    if (weekday !== 0 && weekday !== 6) days.push(date);
   }
-  return weeks;
+  return days;
 }
 
-function keyWeek() {
-  const week = currentWeeks()[state.weekIndex];
-  return `planner:week:${week.toISOString().slice(0, 10)}`;
+function keyDay() {
+  const day = currentDays()[state.dayIndex];
+  return `planner:day:${day.toISOString().slice(0, 10)}`;
 }
 
-function keyWeekNotes() {
-  return `${keyWeek()}:notes`;
+function keyDayNotes() {
+  return `${keyDay()}:notes`;
 }
 
-function keyWeekStickers() {
-  return `${keyWeek()}:stickers`;
+function keyDayStickers() {
+  return `${keyDay()}:stickers`;
 }
 
 function keyForMonth(year, month) {
   return `planner:month:${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
-function keyForWeek(week) {
-  return `planner:week:${week.toISOString().slice(0, 10)}`;
+function keyForDay(day) {
+  return `planner:day:${day.toISOString().slice(0, 10)}`;
 }
 
-function currentWeeks() {
+function currentDays() {
   const [year, month] = monthData[state.monthIndex];
-  return weeksForMonth(year, month);
+  return daysForMonth(year, month);
 }
 
 function readStrokes(key) {
@@ -178,8 +183,60 @@ function writeStickers(key, stickers) {
   localStorage.setItem(key, JSON.stringify(stickers));
 }
 
+function plannerHasSavedWork() {
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if (!key || (!key.startsWith("planner:month:") && !key.startsWith("planner:day:"))) continue;
+    const value = localStorage.getItem(key);
+    if (value && value !== "[]") return true;
+  }
+  return false;
+}
+
+function updateBackupReminder() {
+  const lastBackup = Number(localStorage.getItem("planner:lastBackupAt") || "0");
+  const fourteenDays = 14 * 24 * 60 * 60 * 1000;
+  els.backupReminder.hidden = !plannerHasSavedWork() || Date.now() - lastBackup < fourteenDays;
+}
+
 function formatDay(date) {
   return `${monthNames[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
+}
+
+function formatDailyLabel(date) {
+  return `${dayNames[(date.getDay() + 6) % 7]}, ${formatDay(date)}`;
+}
+
+function readZoom() {
+  const saved = Number(localStorage.getItem("planner:zoom") || "1");
+  return Number.isFinite(saved) ? Math.min(1.8, Math.max(0.8, saved)) : 1;
+}
+
+function applyZoom(value) {
+  const zoom = Math.min(1.8, Math.max(0.8, Number(value.toFixed(2))));
+  document.documentElement.style.setProperty("--planner-zoom", zoom);
+  els.zoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
+  localStorage.setItem("planner:zoom", String(zoom));
+  requestAnimationFrame(redraw);
+}
+
+function changeZoom(step) {
+  applyZoom(readZoom() + step);
+}
+
+function setActiveSurface(surface) {
+  state.activeSurface = surface;
+  els.monthSurface.classList.toggle("active-surface", surface === "month");
+  els.weekSurface.classList.toggle("active-surface", surface === "week");
+}
+
+function updateActiveSurfaceFromView() {
+  if (state.drawing) return;
+  const focusY = window.innerHeight * 0.55;
+  const monthRect = els.monthSurface.getBoundingClientRect();
+  const weekRect = els.weekSurface.getBoundingClientRect();
+  const distance = (rect) => Math.abs(rect.top + rect.height / 2 - focusY);
+  setActiveSurface(distance(weekRect) < distance(monthRect) ? "week" : "month");
 }
 
 function academicMonthIndexForDate(date) {
@@ -191,9 +248,10 @@ function goToDate(date) {
   if (monthIndex === -1) return false;
   saveCurrent();
   state.monthIndex = monthIndex;
-  const targetWeek = startOfWeek(date).getTime();
-  const weekIndex = currentWeeks().findIndex((week) => week.getTime() === targetWeek);
-  state.weekIndex = Math.max(0, weekIndex);
+  const days = currentDays();
+  const exactDay = days.findIndex((day) => day.getDate() === date.getDate());
+  const nextSchoolDay = days.findIndex((day) => day.getDate() > date.getDate());
+  state.dayIndex = exactDay >= 0 ? exactDay : nextSchoolDay >= 0 ? nextSchoolDay : days.length - 1;
   loadCurrent();
   renderAll();
   return true;
@@ -209,7 +267,7 @@ function renderTabs() {
     button.addEventListener("click", () => {
       saveCurrent();
       state.monthIndex = index;
-      state.weekIndex = 0;
+      state.dayIndex = 0;
       loadCurrent();
       renderAll();
     });
@@ -242,30 +300,26 @@ function renderCalendar() {
 }
 
 function renderWeekControls() {
-  const weeks = currentWeeks();
+  const days = currentDays();
   els.weekSelect.innerHTML = "";
-  weeks.forEach((week, index) => {
-    const end = addDays(week, 6);
+  days.forEach((day, index) => {
     const option = document.createElement("option");
     option.value = String(index);
-    option.textContent = `${formatDay(week)} - ${formatDay(end)}`;
+    option.textContent = formatDailyLabel(day);
     els.weekSelect.append(option);
   });
-  els.weekSelect.value = String(state.weekIndex);
-  const week = weeks[state.weekIndex];
-  els.weekHeading.textContent = `Week of ${formatDay(week)} - ${formatDay(addDays(week, 6))}`;
+  els.weekSelect.value = String(state.dayIndex);
+  const day = days[state.dayIndex];
+  els.weekHeading.textContent = `Daily Focus: ${formatDailyLabel(day)}`;
 }
 
 function renderWeekGrid() {
-  const week = currentWeeks()[state.weekIndex];
+  const day = currentDays()[state.dayIndex];
   els.weekGrid.innerHTML = "";
-  for (let i = 0; i < 5; i++) {
-    const date = addDays(week, i);
-    const day = document.createElement("div");
-    day.className = "week-day";
-    day.innerHTML = `<header><strong>${dayNames[i].toUpperCase()}</strong><small>${formatDay(date)}</small></header><div class="week-lines"></div>`;
-    els.weekGrid.append(day);
-  }
+  const focus = document.createElement("div");
+  focus.className = "daily-todos";
+  focus.innerHTML = `<header><strong>${formatDailyLabel(day)}</strong><small>To-Dos</small></header><div class="week-lines"></div>`;
+  els.weekGrid.append(focus);
 }
 
 function resizeCanvas(canvas) {
@@ -307,25 +361,26 @@ function redrawCanvas(canvas, strokes) {
 
 function redraw() {
   redrawCanvas(els.monthCanvas, state.monthStrokes);
-  redrawCanvas(els.weekCanvas, state.weekStrokes);
+  redrawCanvas(els.weekCanvas, state.dayStrokes);
 }
 
 function loadCurrent() {
   state.monthStrokes = readStrokes(keyMonth());
-  state.weekStrokes = readStrokes(keyWeek());
+  state.dayStrokes = readStrokes(keyDay());
   state.monthNotes = readNotes(keyMonthNotes());
-  state.weekNotes = readNotes(keyWeekNotes());
+  state.dayNotes = readNotes(keyDayNotes());
   state.monthStickers = readStickers(keyMonthStickers());
-  state.weekStickers = readStickers(keyWeekStickers());
+  state.dayStickers = readStickers(keyDayStickers());
 }
 
 function saveCurrent() {
   writeStrokes(keyMonth(), state.monthStrokes);
-  writeStrokes(keyWeek(), state.weekStrokes);
+  writeStrokes(keyDay(), state.dayStrokes);
   writeNotes(keyMonthNotes(), state.monthNotes);
-  writeNotes(keyWeekNotes(), state.weekNotes);
+  writeNotes(keyDayNotes(), state.dayNotes);
   writeStickers(keyMonthStickers(), state.monthStickers);
-  writeStickers(keyWeekStickers(), state.weekStickers);
+  writeStickers(keyDayStickers(), state.dayStickers);
+  updateBackupReminder();
 }
 
 function collectPlannerBackup() {
@@ -335,7 +390,7 @@ function collectPlannerBackup() {
     version: 1,
     exportedAt: new Date().toISOString(),
     months: {},
-    weeks: {},
+    days: {},
   };
 
   monthData.forEach(([year, month]) => {
@@ -345,12 +400,12 @@ function collectPlannerBackup() {
       notes: readNotes(`${monthKey}:notes`),
       stickers: readStickers(`${monthKey}:stickers`),
     };
-    weeksForMonth(year, month).forEach((week) => {
-      const weekKey = keyForWeek(week);
-      data.weeks[weekKey] = {
-        strokes: readStrokes(weekKey),
-        notes: readNotes(`${weekKey}:notes`),
-        stickers: readStickers(`${weekKey}:stickers`),
+    daysForMonth(year, month).forEach((day) => {
+      const dayKey = keyForDay(day);
+      data.days[dayKey] = {
+        strokes: readStrokes(dayKey),
+        notes: readNotes(`${dayKey}:notes`),
+        stickers: readStickers(`${dayKey}:stickers`),
       };
     });
   });
@@ -369,10 +424,12 @@ function exportBackup() {
   link.click();
   link.remove();
   URL.revokeObjectURL(link.href);
+  localStorage.setItem("planner:lastBackupAt", String(Date.now()));
+  updateBackupReminder();
 }
 
 function restoreBackup(data) {
-  if (!data || data.app !== "school-psychology-planner" || !data.months || !data.weeks) {
+  if (!data || data.app !== "school-psychology-planner" || !data.months || (!data.days && !data.weeks)) {
     alert("This does not look like a planner backup file.");
     return;
   }
@@ -382,7 +439,7 @@ function restoreBackup(data) {
     writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
     writeStickers(`${key}:stickers`, Array.isArray(value.stickers) ? value.stickers : []);
   });
-  Object.entries(data.weeks).forEach(([key, value]) => {
+  Object.entries(data.days || {}).forEach(([key, value]) => {
     writeStrokes(key, Array.isArray(value.strokes) ? value.strokes : []);
     writeNotes(`${key}:notes`, Array.isArray(value.notes) ? value.notes : []);
     writeStickers(`${key}:stickers`, Array.isArray(value.stickers) ? value.stickers : []);
@@ -419,21 +476,21 @@ function surfaceForCanvas(canvas) {
 }
 
 function strokesForSurface(surface) {
-  return surface === "month" ? state.monthStrokes : state.weekStrokes;
+  return surface === "month" ? state.monthStrokes : state.dayStrokes;
 }
 
 function setStrokesForSurface(surface, strokes) {
   if (surface === "month") state.monthStrokes = strokes;
-  else state.weekStrokes = strokes;
+  else state.dayStrokes = strokes;
 }
 
 function notesForSurface(surface) {
-  return surface === "month" ? state.monthNotes : state.weekNotes;
+  return surface === "month" ? state.monthNotes : state.dayNotes;
 }
 
 function setNotesForSurface(surface, notes) {
   if (surface === "month") state.monthNotes = notes;
-  else state.weekNotes = notes;
+  else state.dayNotes = notes;
 }
 
 function layerForSurface(surface) {
@@ -445,12 +502,12 @@ function stickerLayerForSurface(surface) {
 }
 
 function stickersForSurface(surface) {
-  return surface === "month" ? state.monthStickers : state.weekStickers;
+  return surface === "month" ? state.monthStickers : state.dayStickers;
 }
 
 function setStickersForSurface(surface, stickers) {
   if (surface === "month") state.monthStickers = stickers;
-  else state.weekStickers = stickers;
+  else state.dayStickers = stickers;
 }
 
 function canvasPoint(canvas, event) {
@@ -471,7 +528,7 @@ function beginDraw(canvas, event) {
   event.preventDefault();
   state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
-  state.activeSurface = surface;
+  setActiveSurface(surface);
   state.drawing = true;
   state.drawingPointerId = event.pointerId ?? null;
   if (event.pointerId !== undefined && canvas.setPointerCapture) {
@@ -610,7 +667,7 @@ function renderNotesForSurface(surface) {
       updateNote(surface, note.id, { text: textarea.value });
     });
     textarea.addEventListener("focus", () => {
-      state.activeSurface = surface;
+      setActiveSurface(surface);
     });
     deleteButton.addEventListener("click", () => {
       setNotesForSurface(surface, notesForSurface(surface).filter((item) => item.id !== note.id));
@@ -635,7 +692,7 @@ function updateNote(surface, id, patch, shouldSave = true) {
 function attachStickyDrag(surface, element, handle) {
   let drag = null;
   handle.addEventListener("pointerdown", (event) => {
-    state.activeSurface = surface;
+    setActiveSurface(surface);
     drag = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -673,7 +730,7 @@ function attachStickyResize(surface, element, handle) {
   let resize = null;
   handle.addEventListener("pointerdown", (event) => {
     event.preventDefault();
-    state.activeSurface = surface;
+    setActiveSurface(surface);
     resize = {
       startX: event.clientX,
       startY: event.clientY,
@@ -752,7 +809,7 @@ function attachStickerDrag(surface, element) {
   let drag = null;
   element.addEventListener("pointerdown", (event) => {
     if (event.target.closest(".sticker-delete")) return;
-    state.activeSurface = surface;
+    setActiveSurface(surface);
     drag = {
       startX: event.clientX,
       startY: event.clientY,
@@ -801,13 +858,14 @@ function addSticker() {
   const type = els.stickerSelect.value;
   const config = stickerTypes[type];
   const offset = (existing.length % 5) * 14;
+  const stickerWidth = Math.max(62, Math.min(112, 34 + config.label.length * 7));
   const sticker = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     type,
-    x: Math.min(36 + offset, Math.max(0, layer.clientWidth - 120)),
-    y: Math.min(36 + offset, Math.max(0, layer.clientHeight - 40)),
-    w: 98,
-    h: 26,
+    x: Math.min(28 + offset, Math.max(0, layer.clientWidth - stickerWidth - 8)),
+    y: Math.min(28 + offset, Math.max(0, layer.clientHeight - 32)),
+    w: stickerWidth,
+    h: 22,
     color: config.color,
   };
   setStickersForSurface(surface, [...existing, sticker]);
@@ -836,19 +894,23 @@ function addSticky() {
 
 els.weekSelect.addEventListener("change", () => {
   saveCurrent();
-  state.weekIndex = Number(els.weekSelect.value);
-  state.weekStrokes = readStrokes(keyWeek());
+  state.dayIndex = Number(els.weekSelect.value);
+  state.dayStrokes = readStrokes(keyDay());
+  state.dayNotes = readNotes(keyDayNotes());
+  state.dayStickers = readStickers(keyDayStickers());
   renderWeekControls();
   renderWeekGrid();
+  renderNotesForSurface("week");
+  renderStickersForSurface("week");
   requestAnimationFrame(redraw);
 });
 
 els.prevWeek.addEventListener("click", () => {
   saveCurrent();
-  if (state.weekIndex > 0) state.weekIndex -= 1;
+  if (state.dayIndex > 0) state.dayIndex -= 1;
   else if (state.monthIndex > 0) {
     state.monthIndex -= 1;
-    state.weekIndex = currentWeeks().length - 1;
+    state.dayIndex = currentDays().length - 1;
   }
   loadCurrent();
   renderAll();
@@ -856,10 +918,10 @@ els.prevWeek.addEventListener("click", () => {
 
 els.nextWeek.addEventListener("click", () => {
   saveCurrent();
-  if (state.weekIndex < currentWeeks().length - 1) state.weekIndex += 1;
+  if (state.dayIndex < currentDays().length - 1) state.dayIndex += 1;
   else if (state.monthIndex < monthData.length - 1) {
     state.monthIndex += 1;
-    state.weekIndex = 0;
+    state.dayIndex = 0;
   }
   loadCurrent();
   renderAll();
@@ -876,7 +938,11 @@ els.todayButton.addEventListener("click", () => {
     alert("Today is outside this May 2026 - June 2027 planner.");
   }
 });
+els.zoomOutButton.addEventListener("click", () => changeZoom(-0.1));
+els.zoomInButton.addEventListener("click", () => changeZoom(0.1));
+els.zoomResetButton.addEventListener("click", () => applyZoom(1));
 els.exportButton.addEventListener("click", exportBackup);
+els.backupNowButton.addEventListener("click", exportBackup);
 els.importButton.addEventListener("click", () => els.importInput.click());
 els.importInput.addEventListener("change", () => {
   const file = els.importInput.files?.[0];
@@ -909,11 +975,22 @@ els.clearButton.addEventListener("click", () => {
   renderStickersForSurface(surface);
 });
 
-window.addEventListener("resize", () => requestAnimationFrame(redraw));
+window.addEventListener("resize", () => {
+  requestAnimationFrame(() => {
+    redraw();
+    updateActiveSurfaceFromView();
+  });
+});
+window.addEventListener("scroll", () => requestAnimationFrame(updateActiveSurfaceFromView), { passive: true });
 window.addEventListener("beforeunload", saveCurrent);
 
 attachDrawing(els.monthCanvas);
 attachDrawing(els.weekCanvas);
+els.monthSurface.addEventListener("pointerdown", () => setActiveSurface("month"), true);
+els.weekSurface.addEventListener("pointerdown", () => setActiveSurface("week"), true);
 updateInputMode();
+applyZoom(readZoom());
 loadCurrent();
 renderAll();
+updateActiveSurfaceFromView();
+updateBackupReminder();

@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#f7f2e9" />
     <title>School Psychology Planner</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=2026-05-20-may-june-stickers" />
+    <link rel="stylesheet" href="styles.css?v=2026-05-20-consult-parking-backup" />
   </head>
   <body>
     <main class="app">
@@ -18,14 +18,14 @@
         <img class="botanical botanical-top" src="assets/eucalyptus-corner.svg" alt="" />
         <img class="botanical botanical-bottom" src="assets/ivy-sprig.svg" alt="" />
         <header class="topbar">
-          <button class="icon-button" id="prevWeek" aria-label="Previous week" title="Previous week">‹</button>
+          <button class="icon-button" id="prevWeek" aria-label="Previous day" title="Previous day">‹</button>
           <div>
             <p class="eyebrow">School Psychology Planner</p>
             <h1 id="monthTitle">May 2026</h1>
           </div>
           <div class="week-nav">
-            <select id="weekSelect" aria-label="Week"></select>
-            <button class="icon-button" id="nextWeek" aria-label="Next week" title="Next week">›</button>
+            <select id="weekSelect" aria-label="Work day"></select>
+            <button class="icon-button" id="nextWeek" aria-label="Next day" title="Next day">›</button>
           </div>
         </header>
 
@@ -63,11 +63,20 @@
           </label>
           <span class="toolbar-divider" aria-hidden="true"></span>
           <button class="tool" id="todayButton">Today</button>
+          <div class="zoom-tools" aria-label="Planner zoom">
+            <button class="tool zoom-button" id="zoomOutButton" aria-label="Zoom out">−</button>
+            <button class="tool zoom-level" id="zoomResetButton" title="Reset zoom">100%</button>
+            <button class="tool zoom-button" id="zoomInButton" aria-label="Zoom in">+</button>
+          </div>
           <button class="tool" id="exportButton">Export Backup</button>
           <button class="tool" id="importButton">Import Backup</button>
           <input id="importInput" class="visually-hidden" type="file" accept="application/json,.json" />
           <button class="tool" id="undoButton">Undo</button>
           <button class="tool" id="clearButton">Clear Area</button>
+        </section>
+        <section class="backup-reminder" id="backupReminder" hidden>
+          <span>Backup recommended</span>
+          <button class="tool" id="backupNowButton">Export Backup</button>
         </section>
 
         <section class="month-panel">
@@ -77,6 +86,16 @@
           </div>
           <div class="calendar-wrap writing-surface" data-surface="month">
             <div id="calendarGrid" class="calendar-grid"></div>
+            <div class="month-support-grid">
+              <section class="month-pad consult-pad">
+                <h3>Consult Log Scratch</h3>
+                <div class="pad-lines"></div>
+              </section>
+              <section class="month-pad parking-pad">
+                <h3>Parking Lot</h3>
+                <div class="pad-lines"></div>
+              </section>
+            </div>
             <canvas id="monthCanvas" aria-label="Month handwriting layer"></canvas>
             <div id="monthStickyLayer" class="sticky-layer" aria-label="Month post-its"></div>
             <div id="monthStickerLayer" class="sticker-layer" aria-label="Month stickers"></div>
@@ -85,8 +104,8 @@
 
         <section class="week-panel">
           <div class="section-title">
-            <h2 id="weekHeading">Week View</h2>
-            <p>Weekly tasks and notes save separately for each week.</p>
+            <h2 id="weekHeading">Daily Focus</h2>
+            <p>Daily to-dos save separately for each school day.</p>
           </div>
           <div class="week-wrap writing-surface" data-surface="week">
             <div class="task-sidebar">
@@ -94,17 +113,13 @@
                 <h3>Priorities</h3>
                 <span></span><span></span><span></span>
               </div>
-              <div class="task-box turquoise">
-                <h3>Meetings</h3>
-                <span></span><span></span><span></span><span></span>
-              </div>
               <div class="task-box lilac">
-                <h3>Evaluations</h3>
-                <span></span><span></span><span></span><span></span>
+                <h3>Evaluations To Work On</h3>
+                <span></span><span></span><span></span><span></span><span></span>
               </div>
               <div class="task-box clay">
-                <h3>Follow Up</h3>
-                <span></span><span></span><span></span>
+                <h3>Follow-Up Calls + Emails</h3>
+                <span></span><span></span><span></span><span></span>
               </div>
             </div>
             <div id="weekGrid" class="week-grid"></div>
@@ -116,6 +131,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=2026-05-20-may-june-stickers"></script>
+    <script src="app.js?v=2026-05-20-consult-parking-backup"></script>
   </body>
 </html>

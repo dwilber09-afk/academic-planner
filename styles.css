@@ -11,6 +11,7 @@
   --clay: #dfa486;
   --turquoise: #bfdbd9;
   --white: #fffdf8;
+  --planner-zoom: 1;
 }
 
 * {
@@ -191,6 +192,9 @@ select {
   gap: 10px;
   margin: 4px 0 14px;
   padding: 10px;
+  position: sticky;
+  top: max(6px, env(safe-area-inset-top));
+  z-index: 30;
   backdrop-filter: blur(12px);
 }
 
@@ -245,6 +249,46 @@ select {
   width: 1px;
 }
 
+.zoom-tools {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.zoom-button {
+  font-size: 21px;
+  line-height: 1;
+  min-width: 38px;
+  padding: 0;
+}
+
+.zoom-level {
+  min-width: 58px;
+  padding-inline: 8px;
+}
+
+.backup-reminder {
+  align-items: center;
+  background: rgba(255, 244, 200, 0.72);
+  border: 1px solid rgba(223, 164, 134, 0.34);
+  border-radius: 8px;
+  color: var(--ink);
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  position: sticky;
+  top: 72px;
+  z-index: 29;
+}
+
+.backup-reminder[hidden] {
+  display: none;
+}
+
 .section-title {
   align-items: end;
   display: flex;
@@ -271,11 +315,16 @@ select {
   box-shadow: 0 16px 40px rgba(80, 68, 55, 0.08);
   overflow: hidden;
   position: relative;
-  touch-action: none;
+  touch-action: pan-x pan-y pinch-zoom;
+  zoom: var(--planner-zoom);
+}
+
+.writing-surface.active-surface {
+  border-color: rgba(127, 148, 119, 0.5);
 }
 
 .calendar-wrap {
-  min-height: 318px;
+  min-height: 506px;
 }
 
 .calendar-grid {
@@ -283,6 +332,49 @@ select {
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: 32px repeat(6, 1fr);
   height: 318px;
+}
+
+.month-support-grid {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 188px;
+  padding: 10px;
+}
+
+.month-pad {
+  border: 1px solid rgba(49, 47, 44, 0.08);
+  border-radius: 8px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.month-pad h3 {
+  background: rgba(255, 253, 248, 0.58);
+  border-bottom: 1px solid rgba(222, 215, 204, 0.9);
+  font-size: 13px;
+  padding: 9px 10px;
+}
+
+.consult-pad {
+  background: rgba(191, 219, 217, 0.18);
+}
+
+.parking-pad {
+  background: rgba(209, 194, 212, 0.18);
+}
+
+.pad-lines {
+  inset: 47px 10px 10px;
+  position: absolute;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 20px,
+    rgba(203, 197, 186, 0.55) 21px
+  );
 }
 
 .calendar-cell {
@@ -372,48 +464,45 @@ select {
 }
 
 .week-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: block;
   min-width: 0;
 }
 
-.week-day {
-  border-right: 1px solid var(--line);
+.daily-todos {
+  height: 100%;
   min-width: 0;
   position: relative;
 }
 
-.week-day:last-child {
-  border-right: 0;
-}
-
-.week-day header {
+.daily-todos header {
   background: rgba(183, 196, 171, 0.16);
   border-bottom: 1px solid var(--line);
-  min-height: 44px;
-  padding: 6px 4px;
-  text-align: center;
+  min-height: 56px;
+  padding: 10px 14px;
 }
 
-.week-day strong {
+.daily-todos strong {
   display: block;
-  font-size: 12px;
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
 }
 
-.week-day small {
+.daily-todos small {
   color: var(--muted);
   display: block;
-  font-size: 11px;
+  font-size: 12px;
+  margin-top: 3px;
 }
 
 .week-lines {
-  inset: 58px 8px 10px;
+  inset: 72px 16px 16px;
   position: absolute;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent 19px,
-    rgba(203, 197, 186, 0.65) 20px
+    transparent 25px,
+    rgba(203, 197, 186, 0.65) 26px
   );
 }
 
@@ -526,14 +615,14 @@ canvas {
   color: var(--ink);
   cursor: move;
   display: inline-flex;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   gap: 5px;
   justify-content: center;
-  min-height: 24px;
-  min-width: 88px;
+  min-height: 19px;
+  min-width: 54px;
   overflow: hidden;
-  padding: 4px 10px;
+  padding: 2px 6px;
   pointer-events: auto;
   position: absolute;
   resize: both;
@@ -553,11 +642,11 @@ canvas {
   color: var(--ink);
   display: inline-flex;
   flex: 0 0 auto;
-  height: 17px;
+  height: 14px;
   justify-content: center;
   line-height: 1;
   padding: 0;
-  width: 17px;
+  width: 14px;
 }
 
 .calendar-sticker .sticker-label {
@@ -592,5 +681,9 @@ canvas {
     border-bottom: 1px solid var(--line);
     border-right: 0;
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .month-support-grid {
+    grid-template-columns: 1fr;
   }
 }
