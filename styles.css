@@ -265,6 +265,8 @@ select {
   display: inline-flex;
   gap: 3px;
   left: 50%;
+  max-width: calc(100vw - 20px);
+  overflow-x: auto;
   padding: 4px;
   position: fixed;
   transform: translateX(-50%);
@@ -275,7 +277,46 @@ select {
 .floating-mode-tools .tool {
   border: 0;
   min-height: 40px;
-  min-width: 76px;
+  min-width: 66px;
+  white-space: nowrap;
+}
+
+.dock-divider {
+  align-self: stretch;
+  border-left: 1px solid rgba(215, 209, 200, 0.96);
+  margin: 0 3px;
+}
+
+.dock-control,
+.dock-size {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.dock-control {
+  padding: 0 6px;
+}
+
+.dock-control input {
+  border: 0;
+  height: 28px;
+  padding: 0;
+  width: 32px;
+}
+
+.dock-size {
+  padding: 0 9px;
+  width: min(150px, 25vw);
+}
+
+.dock-size input {
+  width: 100%;
 }
 
 .zoom-button {

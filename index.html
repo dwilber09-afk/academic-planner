@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#f7f2e9" />
     <title>School Psychology Planner</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=2026-05-21-bottom-mode-only" />
+    <link rel="stylesheet" href="styles.css?v=2026-05-21-dock-tools-only" />
   </head>
   <body>
     <main class="app">
@@ -30,17 +30,6 @@
         </header>
 
         <section class="toolbar" aria-label="Drawing tools">
-          <button class="tool active" id="penTool" aria-pressed="true">Pen</button>
-          <button class="tool" id="highlighterTool" aria-pressed="false">Highlighter</button>
-          <button class="tool" id="eraserTool" aria-pressed="false">Eraser</button>
-          <label>
-            Color
-            <input id="colorInput" type="color" value="#3a3434" />
-          </label>
-          <label>
-            Size
-            <input id="sizeInput" type="range" min="1" max="14" value="3" />
-          </label>
           <button class="tool sticky-action" id="addStickyButton">Add Post-it</button>
           <select id="stickerSelect" aria-label="Sticker type">
             <option value="etr">ETR Meeting</option>
@@ -134,8 +123,18 @@
     <nav class="floating-mode-tools" aria-label="Quick planner input mode">
       <button class="tool active" id="quickWriteModeButton" aria-pressed="true">Write</button>
       <button class="tool" id="quickMoveModeButton" aria-pressed="false">Move</button>
+      <span class="dock-divider" aria-hidden="true"></span>
+      <button class="tool active" id="quickPenTool" aria-pressed="true">Pen</button>
+      <button class="tool" id="quickHighlighterTool" aria-pressed="false">Highlight</button>
+      <button class="tool" id="quickEraserTool" aria-pressed="false">Eraser</button>
+      <label class="dock-control" aria-label="Writing color">
+        <input id="quickColorInput" type="color" value="#3a3434" />
+      </label>
+      <label class="dock-size" aria-label="Writing size">
+        <input id="quickSizeInput" type="range" min="1" max="14" value="3" />
+      </label>
     </nav>
 
-    <script src="app.js?v=2026-05-21-bottom-mode-only"></script>
+    <script src="app.js?v=2026-05-21-dock-tools-only"></script>
   </body>
 </html>

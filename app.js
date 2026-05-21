@@ -29,6 +29,7 @@ const state = {
   tool: "pen",
   inputMode: "write",
   color: "#3a3434",
+  highlighterColor: "#f6dd7a",
   size: 3,
   activeSurface: "month",
   drawing: false,
@@ -58,11 +59,11 @@ const els = {
   weekSelect: document.querySelector("#weekSelect"),
   prevWeek: document.querySelector("#prevWeek"),
   nextWeek: document.querySelector("#nextWeek"),
-  penTool: document.querySelector("#penTool"),
-  highlighterTool: document.querySelector("#highlighterTool"),
-  eraserTool: document.querySelector("#eraserTool"),
   quickWriteModeButton: document.querySelector("#quickWriteModeButton"),
   quickMoveModeButton: document.querySelector("#quickMoveModeButton"),
+  quickPenTool: document.querySelector("#quickPenTool"),
+  quickHighlighterTool: document.querySelector("#quickHighlighterTool"),
+  quickEraserTool: document.querySelector("#quickEraserTool"),
   addStickyButton: document.querySelector("#addStickyButton"),
   stickerSelect: document.querySelector("#stickerSelect"),
   addStickerButton: document.querySelector("#addStickerButton"),
@@ -78,8 +79,8 @@ const els = {
   backupNowButton: document.querySelector("#backupNowButton"),
   undoButton: document.querySelector("#undoButton"),
   clearButton: document.querySelector("#clearButton"),
-  colorInput: document.querySelector("#colorInput"),
-  sizeInput: document.querySelector("#sizeInput"),
+  quickColorInput: document.querySelector("#quickColorInput"),
+  quickSizeInput: document.querySelector("#quickSizeInput"),
   monthCanvas: document.querySelector("#monthCanvas"),
   weekCanvas: document.querySelector("#weekCanvas"),
   monthSurface: document.querySelector('[data-surface="month"]'),
@@ -601,7 +602,7 @@ function beginDraw(canvas, event) {
   const isHighlighter = state.tool === "highlighter";
   state.currentStroke = {
     tool: state.tool,
-    color: isHighlighter ? "#f6dd7a" : state.color,
+    color: isHighlighter ? state.highlighterColor : state.color,
     size: state.tool === "eraser" ? state.size * 5 : isHighlighter ? Math.max(10, state.size * 3) : state.size,
     points: [canvasPoint(canvas, event)],
   };
@@ -696,12 +697,37 @@ function attachDrawing(canvas) {
 
 function setTool(tool) {
   state.tool = tool;
-  els.penTool.classList.toggle("active", tool === "pen");
-  els.highlighterTool.classList.toggle("active", tool === "highlighter");
-  els.eraserTool.classList.toggle("active", tool === "eraser");
-  els.penTool.setAttribute("aria-pressed", String(tool === "pen"));
-  els.highlighterTool.setAttribute("aria-pressed", String(tool === "highlighter"));
-  els.eraserTool.setAttribute("aria-pressed", String(tool === "eraser"));
+  els.quickPenTool.classList.toggle("active", tool === "pen");
+  els.quickHighlighterTool.classList.toggle("active", tool === "highlighter");
+  els.quickEraserTool.classList.toggle("active", tool === "eraser");
+  els.quickPenTool.setAttribute("aria-pressed", String(tool === "pen"));
+  els.quickHighlighterTool.setAttribute("aria-pressed", String(tool === "highlighter"));
+  els.quickEraserTool.setAttribute("aria-pressed", String(tool === "eraser"));
+  syncToolControls();
+}
+
+function selectedWritingColor() {
+  return state.tool === "highlighter" ? state.highlighterColor : state.color;
+}
+
+function syncToolControls() {
+  const color = selectedWritingColor();
+  els.quickColorInput.value = color;
+  els.quickSizeInput.value = String(state.size);
+}
+
+function setWritingColor(color) {
+  if (state.tool === "highlighter") state.highlighterColor = color;
+  else {
+    state.color = color;
+    if (state.tool === "eraser") setTool("pen");
+  }
+  syncToolControls();
+}
+
+function setWritingSize(size) {
+  state.size = Number(size);
+  syncToolControls();
 }
 
 function setInputMode(mode) {
@@ -1015,9 +1041,9 @@ els.nextWeek.addEventListener("click", () => {
   renderAll();
 });
 
-els.penTool.addEventListener("click", () => setTool("pen"));
-els.highlighterTool.addEventListener("click", () => setTool("highlighter"));
-els.eraserTool.addEventListener("click", () => setTool("eraser"));
+els.quickPenTool.addEventListener("click", () => setTool("pen"));
+els.quickHighlighterTool.addEventListener("click", () => setTool("highlighter"));
+els.quickEraserTool.addEventListener("click", () => setTool("eraser"));
 els.quickWriteModeButton.addEventListener("click", () => setInputMode("write"));
 els.quickMoveModeButton.addEventListener("click", () => setInputMode("move"));
 els.addStickyButton.addEventListener("click", addSticky);
@@ -1039,13 +1065,8 @@ els.importInput.addEventListener("change", () => {
   if (file) importBackupFile(file);
   els.importInput.value = "";
 });
-els.colorInput.addEventListener("input", () => {
-  state.color = els.colorInput.value;
-  setTool("pen");
-});
-els.sizeInput.addEventListener("input", () => {
-  state.size = Number(els.sizeInput.value);
-});
+els.quickColorInput.addEventListener("input", () => setWritingColor(els.quickColorInput.value));
+els.quickSizeInput.addEventListener("input", () => setWritingSize(els.quickSizeInput.value));
 els.undoButton.addEventListener("click", () => {
   const surface = state.activeSurface;
   const strokes = strokesForSurface(surface);
