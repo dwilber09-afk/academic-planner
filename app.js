@@ -337,10 +337,11 @@ function renderWeekGrid() {
 }
 
 function resizeCanvas(canvas) {
-  const rect = canvas.getBoundingClientRect();
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
   const scale = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.round(rect.width * scale));
-  canvas.height = Math.max(1, Math.round(rect.height * scale));
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
   const ctx = canvas.getContext("2d");
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
 }
@@ -368,8 +369,7 @@ function drawStroke(ctx, stroke) {
 function redrawCanvas(canvas, strokes) {
   resizeCanvas(canvas);
   const ctx = canvas.getContext("2d");
-  const rect = canvas.getBoundingClientRect();
-  ctx.clearRect(0, 0, rect.width, rect.height);
+  ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
   strokes.forEach((stroke) => drawStroke(ctx, stroke));
 }
 
@@ -526,9 +526,11 @@ function setStickersForSurface(surface, stickers) {
 
 function canvasPoint(canvas, event) {
   const rect = canvas.getBoundingClientRect();
+  const widthRatio = rect.width ? canvas.clientWidth / rect.width : 1;
+  const heightRatio = rect.height ? canvas.clientHeight / rect.height : 1;
   return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
+    x: (event.clientX - rect.left) * widthRatio,
+    y: (event.clientY - rect.top) * heightRatio,
   };
 }
 
