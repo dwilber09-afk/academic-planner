@@ -32,6 +32,8 @@ const state = {
   activeSurface: "month",
   drawing: false,
   drawingPointerId: null,
+  panPointerId: null,
+  panPoint: null,
   lastPointerEventAt: 0,
   touchFallbackActive: false,
   currentStroke: null,
@@ -523,6 +525,37 @@ function shouldDrawFromInput(event) {
   return event.pointerType === "pen";
 }
 
+function beginFingerPan(canvas, event) {
+  if (!els.pencilOnlyInput.checked || event.pointerType !== "touch") return false;
+  event.preventDefault();
+  state.panPointerId = event.pointerId ?? null;
+  state.panPoint = { x: event.clientX, y: event.clientY };
+  if (event.pointerId !== undefined && canvas.setPointerCapture) {
+    canvas.setPointerCapture(event.pointerId);
+  }
+  return true;
+}
+
+function moveFingerPan(event) {
+  if (!state.panPoint) return false;
+  if (state.panPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.panPointerId) return false;
+  event.preventDefault();
+  const dx = state.panPoint.x - event.clientX;
+  const dy = state.panPoint.y - event.clientY;
+  state.panPoint = { x: event.clientX, y: event.clientY };
+  window.scrollBy(dx, dy);
+  return true;
+}
+
+function endFingerPan(event) {
+  if (!state.panPoint) return false;
+  if (state.panPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.panPointerId) return false;
+  event.preventDefault();
+  state.panPointerId = null;
+  state.panPoint = null;
+  return true;
+}
+
 function beginDraw(canvas, event) {
   if (!shouldDrawFromInput(event)) return;
   event.preventDefault();
@@ -576,11 +609,19 @@ function attachDrawing(canvas) {
   const activeTouch = { id: null };
   const touchOptions = { passive: false };
 
-  canvas.addEventListener("pointerdown", (event) => beginDraw(canvas, event));
-  canvas.addEventListener("pointermove", (event) => moveDraw(canvas, event));
+  canvas.addEventListener("pointerdown", (event) => {
+    if (!beginFingerPan(canvas, event)) beginDraw(canvas, event);
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (!moveFingerPan(event)) moveDraw(canvas, event);
+  });
   canvas.addEventListener("pointerrawupdate", (event) => moveDraw(canvas, event));
-  canvas.addEventListener("pointerup", (event) => endDraw(canvas, event));
-  canvas.addEventListener("pointercancel", (event) => endDraw(canvas, event));
+  canvas.addEventListener("pointerup", (event) => {
+    if (!endFingerPan(event)) endDraw(canvas, event);
+  });
+  canvas.addEventListener("pointercancel", (event) => {
+    if (!endFingerPan(event)) endDraw(canvas, event);
+  });
 
   canvas.addEventListener("touchstart", (event) => {
     if (els.pencilOnlyInput.checked) return;
@@ -627,9 +668,8 @@ function setTool(tool) {
 }
 
 function updateInputMode() {
-  const action = els.pencilOnlyInput.checked ? "pan-x pan-y pinch-zoom" : "none";
-  els.monthCanvas.style.touchAction = action;
-  els.weekCanvas.style.touchAction = action;
+  els.monthCanvas.style.touchAction = "none";
+  els.weekCanvas.style.touchAction = "none";
 }
 
 function renderNotes() {
