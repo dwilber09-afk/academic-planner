@@ -81,6 +81,7 @@ const els = {
   clearButton: document.querySelector("#clearButton"),
   quickColorInput: document.querySelector("#quickColorInput"),
   quickSizeInput: document.querySelector("#quickSizeInput"),
+  floatingModeTools: document.querySelector(".floating-mode-tools"),
   monthCanvas: document.querySelector("#monthCanvas"),
   weekCanvas: document.querySelector("#weekCanvas"),
   monthSurface: document.querySelector('[data-surface="month"]'),
@@ -230,6 +231,17 @@ function applyZoom(value) {
 
 function changeZoom(step) {
   applyZoom(readZoom() + step);
+}
+
+function updateFloatingDock() {
+  const viewport = window.visualViewport;
+  if (!viewport) {
+    els.floatingModeTools.style.left = `${window.scrollX + window.innerWidth / 2}px`;
+    els.floatingModeTools.style.top = `${window.scrollY + window.innerHeight}px`;
+    return;
+  }
+  els.floatingModeTools.style.left = `${viewport.pageLeft + viewport.width / 2}px`;
+  els.floatingModeTools.style.top = `${viewport.pageTop + viewport.height}px`;
 }
 
 function setActiveSurface(surface) {
@@ -1090,10 +1102,16 @@ window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
     redraw();
     updateActiveSurfaceFromView();
+    updateFloatingDock();
   });
 });
-window.addEventListener("scroll", () => requestAnimationFrame(updateActiveSurfaceFromView), { passive: true });
+window.addEventListener("scroll", () => requestAnimationFrame(() => {
+  updateActiveSurfaceFromView();
+  updateFloatingDock();
+}), { passive: true });
 window.addEventListener("beforeunload", saveCurrent);
+window.visualViewport?.addEventListener("resize", () => requestAnimationFrame(updateFloatingDock), { passive: true });
+window.visualViewport?.addEventListener("scroll", () => requestAnimationFrame(updateFloatingDock), { passive: true });
 
 attachDrawing(els.monthCanvas);
 attachDrawing(els.weekCanvas);
@@ -1106,3 +1124,4 @@ loadCurrent();
 renderAll();
 updateActiveSurfaceFromView();
 updateBackupReminder();
+updateFloatingDock();
