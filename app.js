@@ -635,11 +635,15 @@ function moveDraw(canvas, event) {
   if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
   event.preventDefault?.();
   state.lastPointerEventAt = Date.now();
-  state.currentStroke.points.push(canvasPoint(canvas, event));
-  const surface = surfaceForCanvas(canvas);
-  redrawCanvas(canvas, strokesForSurface(surface));
+  const previousPoint = state.currentStroke.points[state.currentStroke.points.length - 1];
+  const inputEvents = event.getCoalescedEvents?.() || [event];
+  const newPoints = inputEvents.map((inputEvent) => canvasPoint(canvas, inputEvent));
+  state.currentStroke.points.push(...newPoints);
   const ctx = canvas.getContext("2d");
-  drawStroke(ctx, state.currentStroke);
+  drawStroke(ctx, {
+    ...state.currentStroke,
+    points: [previousPoint, ...newPoints],
+  });
 }
 
 function endDraw(canvas, event) {
@@ -674,7 +678,6 @@ function attachDrawing(canvas) {
   canvas.addEventListener("pointermove", (event) => {
     if (!moveFingerPan(event)) moveDraw(canvas, event);
   });
-  canvas.addEventListener("pointerrawupdate", (event) => moveDraw(canvas, event));
   canvas.addEventListener("pointerup", (event) => {
     if (!endFingerPan(event)) endDraw(canvas, event);
   });
