@@ -34,6 +34,8 @@ const state = {
   drawingPointerId: null,
   panPointerId: null,
   panPoint: null,
+  panFrame: null,
+  panDistance: 0,
   lastPointerEventAt: 0,
   touchFallbackActive: false,
   currentStroke: null,
@@ -540,10 +542,16 @@ function moveFingerPan(event) {
   if (!state.panPoint) return false;
   if (state.panPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.panPointerId) return false;
   event.preventDefault();
-  const dx = state.panPoint.x - event.clientX;
   const dy = state.panPoint.y - event.clientY;
   state.panPoint = { x: event.clientX, y: event.clientY };
-  window.scrollBy(dx, dy);
+  state.panDistance += dy;
+  if (!state.panFrame) {
+    state.panFrame = requestAnimationFrame(() => {
+      window.scrollBy(0, state.panDistance);
+      state.panDistance = 0;
+      state.panFrame = null;
+    });
+  }
   return true;
 }
 
@@ -553,6 +561,11 @@ function endFingerPan(event) {
   event.preventDefault();
   state.panPointerId = null;
   state.panPoint = null;
+  state.panDistance = 0;
+  if (state.panFrame) {
+    cancelAnimationFrame(state.panFrame);
+    state.panFrame = null;
+  }
   return true;
 }
 
@@ -668,8 +681,9 @@ function setTool(tool) {
 }
 
 function updateInputMode() {
-  els.monthCanvas.style.touchAction = "none";
-  els.weekCanvas.style.touchAction = "none";
+  const action = els.pencilOnlyInput.checked ? "pinch-zoom" : "none";
+  els.monthCanvas.style.touchAction = action;
+  els.weekCanvas.style.touchAction = action;
 }
 
 function renderNotes() {
