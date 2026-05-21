@@ -249,12 +249,6 @@ select {
   width: 1px;
 }
 
-.zoom-tools {
-  align-items: center;
-  display: inline-flex;
-  gap: 4px;
-}
-
 .floating-mode-tools {
   align-items: center;
   background: rgba(255, 253, 248, 0.92);
@@ -334,18 +328,6 @@ select {
 
 .dock-zoom-level {
   min-width: 60px;
-  padding-inline: 8px;
-}
-
-.zoom-button {
-  font-size: 21px;
-  line-height: 1;
-  min-width: 38px;
-  padding: 0;
-}
-
-.zoom-level {
-  min-width: 58px;
   padding-inline: 8px;
 }
 

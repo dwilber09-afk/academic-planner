@@ -72,9 +72,6 @@ const els = {
   exportButton: document.querySelector("#exportButton"),
   importButton: document.querySelector("#importButton"),
   importInput: document.querySelector("#importInput"),
-  zoomOutButton: document.querySelector("#zoomOutButton"),
-  zoomResetButton: document.querySelector("#zoomResetButton"),
-  zoomInButton: document.querySelector("#zoomInButton"),
   backupReminder: document.querySelector("#backupReminder"),
   backupNowButton: document.querySelector("#backupNowButton"),
   undoButton: document.querySelector("#undoButton"),
@@ -226,7 +223,6 @@ function readZoom() {
 function applyZoom(value) {
   const zoom = Math.min(1.8, Math.max(0.8, Number(value.toFixed(2))));
   document.documentElement.style.setProperty("--planner-zoom", zoom);
-  els.zoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
   els.quickZoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
   localStorage.setItem("planner:zoom", String(zoom));
   requestAnimationFrame(redraw);
@@ -1058,9 +1054,6 @@ els.todayButton.addEventListener("click", () => {
     alert("Today is outside this May 2026 - June 2027 planner.");
   }
 });
-els.zoomOutButton.addEventListener("click", () => changeZoom(-0.1));
-els.zoomInButton.addEventListener("click", () => changeZoom(0.1));
-els.zoomResetButton.addEventListener("click", () => applyZoom(1));
 els.quickZoomOutButton.addEventListener("click", () => changeZoom(-0.1));
 els.quickZoomInButton.addEventListener("click", () => changeZoom(0.1));
 els.quickZoomResetButton.addEventListener("click", () => applyZoom(1));
