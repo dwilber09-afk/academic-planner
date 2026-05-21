@@ -530,7 +530,12 @@ function canvasPoint(canvas, event) {
 
 function shouldDrawFromInput(event) {
   if (!els.pencilOnlyInput.checked) return true;
-  return event.pointerType === "pen";
+  return event.pointerType === "pen" || event.touchType === "stylus";
+}
+
+function shouldDrawFromTouch(touch) {
+  if (!els.pencilOnlyInput.checked) return true;
+  return touch?.touchType === "stylus";
 }
 
 function beginFingerPan(canvas, event) {
@@ -578,7 +583,7 @@ function endFingerPan(event) {
 
 function beginDraw(canvas, event) {
   if (!shouldDrawFromInput(event)) return;
-  event.preventDefault();
+  event.preventDefault?.();
   state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
   setActiveSurface(surface);
@@ -599,7 +604,7 @@ function beginDraw(canvas, event) {
 function moveDraw(canvas, event) {
   if (!state.drawing || !state.currentStroke) return;
   if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
-  event.preventDefault();
+  event.preventDefault?.();
   state.lastPointerEventAt = Date.now();
   state.currentStroke.points.push(canvasPoint(canvas, event));
   const surface = surfaceForCanvas(canvas);
@@ -611,7 +616,7 @@ function moveDraw(canvas, event) {
 function endDraw(canvas, event) {
   if (!state.drawing || !state.currentStroke) return;
   if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
-  event.preventDefault();
+  event.preventDefault?.();
   state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
   const strokes = strokesForSurface(surface);
@@ -644,35 +649,40 @@ function attachDrawing(canvas) {
   });
 
   canvas.addEventListener("touchstart", (event) => {
-    if (els.pencilOnlyInput.checked) return;
     if (Date.now() - state.lastPointerEventAt < 250) return;
     const touch = event.changedTouches[0];
-    if (!touch) return;
+    if (!shouldDrawFromTouch(touch)) return;
+    event.preventDefault();
     activeTouch.id = touch.identifier;
     state.touchFallbackActive = true;
     beginDraw(canvas, touch);
   }, touchOptions);
 
   canvas.addEventListener("touchmove", (event) => {
-    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id);
-    if (touch) moveDraw(canvas, touch);
+    if (!shouldDrawFromTouch(touch)) return;
+    event.preventDefault();
+    moveDraw(canvas, touch);
   }, touchOptions);
 
   canvas.addEventListener("touchend", (event) => {
-    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
-    if (touch) endDraw(canvas, touch);
+    if (shouldDrawFromTouch(touch)) {
+      event.preventDefault();
+      endDraw(canvas, touch);
+    }
     activeTouch.id = null;
   }, touchOptions);
 
   canvas.addEventListener("touchcancel", (event) => {
-    if (els.pencilOnlyInput.checked) return;
     if (!state.touchFallbackActive) return;
     const touch = [...event.changedTouches].find((item) => item.identifier === activeTouch.id) || event.changedTouches[0];
-    if (touch) endDraw(canvas, touch);
+    if (shouldDrawFromTouch(touch)) {
+      event.preventDefault();
+      endDraw(canvas, touch);
+    }
     activeTouch.id = null;
   }, touchOptions);
 }
