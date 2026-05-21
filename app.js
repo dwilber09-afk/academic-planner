@@ -81,7 +81,9 @@ const els = {
   clearButton: document.querySelector("#clearButton"),
   quickColorInput: document.querySelector("#quickColorInput"),
   quickSizeInput: document.querySelector("#quickSizeInput"),
-  floatingModeTools: document.querySelector(".floating-mode-tools"),
+  quickZoomOutButton: document.querySelector("#quickZoomOutButton"),
+  quickZoomResetButton: document.querySelector("#quickZoomResetButton"),
+  quickZoomInButton: document.querySelector("#quickZoomInButton"),
   monthCanvas: document.querySelector("#monthCanvas"),
   weekCanvas: document.querySelector("#weekCanvas"),
   monthSurface: document.querySelector('[data-surface="month"]'),
@@ -225,28 +227,13 @@ function applyZoom(value) {
   const zoom = Math.min(1.8, Math.max(0.8, Number(value.toFixed(2))));
   document.documentElement.style.setProperty("--planner-zoom", zoom);
   els.zoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
+  els.quickZoomResetButton.textContent = `${Math.round(zoom * 100)}%`;
   localStorage.setItem("planner:zoom", String(zoom));
   requestAnimationFrame(redraw);
 }
 
 function changeZoom(step) {
   applyZoom(readZoom() + step);
-}
-
-function updateFloatingDock() {
-  const viewport = window.visualViewport;
-  if (!viewport) {
-    els.floatingModeTools.style.setProperty("--dock-scale", "1");
-    els.floatingModeTools.style.setProperty("--dock-shift-x", "0px");
-    els.floatingModeTools.style.setProperty("--dock-shift-y", "0px");
-    return;
-  }
-  const dockScale = 1 / Math.max(1, viewport.scale || 1);
-  const shiftX = viewport.offsetLeft;
-  const shiftY = viewport.offsetTop + viewport.height - window.innerHeight;
-  els.floatingModeTools.style.setProperty("--dock-scale", String(dockScale));
-  els.floatingModeTools.style.setProperty("--dock-shift-x", `${shiftX}px`);
-  els.floatingModeTools.style.setProperty("--dock-shift-y", `${shiftY}px`);
 }
 
 function setActiveSurface(surface) {
@@ -758,7 +745,7 @@ function setInputMode(mode) {
 }
 
 function updateInputMode() {
-  const action = state.inputMode === "move" ? "pan-x pan-y pinch-zoom" : "none";
+  const action = state.inputMode === "move" ? "pan-x pan-y" : "none";
   els.monthCanvas.style.touchAction = action;
   els.weekCanvas.style.touchAction = action;
 }
@@ -1074,6 +1061,9 @@ els.todayButton.addEventListener("click", () => {
 els.zoomOutButton.addEventListener("click", () => changeZoom(-0.1));
 els.zoomInButton.addEventListener("click", () => changeZoom(0.1));
 els.zoomResetButton.addEventListener("click", () => applyZoom(1));
+els.quickZoomOutButton.addEventListener("click", () => changeZoom(-0.1));
+els.quickZoomInButton.addEventListener("click", () => changeZoom(0.1));
+els.quickZoomResetButton.addEventListener("click", () => applyZoom(1));
 els.exportButton.addEventListener("click", exportBackup);
 els.backupNowButton.addEventListener("click", exportBackup);
 els.importButton.addEventListener("click", () => els.importInput.click());
@@ -1107,16 +1097,10 @@ window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
     redraw();
     updateActiveSurfaceFromView();
-    updateFloatingDock();
   });
 });
-window.addEventListener("scroll", () => requestAnimationFrame(() => {
-  updateActiveSurfaceFromView();
-  updateFloatingDock();
-}), { passive: true });
+window.addEventListener("scroll", () => requestAnimationFrame(updateActiveSurfaceFromView), { passive: true });
 window.addEventListener("beforeunload", saveCurrent);
-window.visualViewport?.addEventListener("resize", () => requestAnimationFrame(updateFloatingDock), { passive: true });
-window.visualViewport?.addEventListener("scroll", () => requestAnimationFrame(updateFloatingDock), { passive: true });
 
 attachDrawing(els.monthCanvas);
 attachDrawing(els.weekCanvas);
@@ -1129,4 +1113,3 @@ loadCurrent();
 renderAll();
 updateActiveSurfaceFromView();
 updateBackupReminder();
-updateFloatingDock();

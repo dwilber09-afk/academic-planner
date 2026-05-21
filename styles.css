@@ -256,9 +256,6 @@ select {
 }
 
 .floating-mode-tools {
-  --dock-scale: 1;
-  --dock-shift-x: 0px;
-  --dock-shift-y: 0px;
   align-items: center;
   background: rgba(255, 253, 248, 0.92);
   border: 1px solid rgba(215, 209, 200, 0.96);
@@ -268,13 +265,12 @@ select {
   display: inline-flex;
   gap: 3px;
   left: 50%;
-  max-width: calc((100vw - 20px) / var(--dock-scale));
+  max-width: calc(100vw - 20px);
   overflow-x: auto;
   padding: 4px;
   position: fixed;
   touch-action: none;
-  transform: translate(calc(-50% + var(--dock-shift-x)), var(--dock-shift-y)) scale(var(--dock-scale));
-  transform-origin: center bottom;
+  transform: translateX(-50%);
   z-index: 40;
   backdrop-filter: blur(12px);
 }
@@ -328,6 +324,17 @@ select {
 
 .dock-size input {
   width: 100%;
+}
+
+.dock-zoom {
+  font-size: 21px;
+  min-width: 42px;
+  padding: 0;
+}
+
+.dock-zoom-level {
+  min-width: 60px;
+  padding-inline: 8px;
 }
 
 .zoom-button {
@@ -390,7 +397,7 @@ select {
   box-shadow: 0 16px 40px rgba(80, 68, 55, 0.08);
   overflow: hidden;
   position: relative;
-  touch-action: pan-x pan-y pinch-zoom;
+  touch-action: pan-x pan-y;
   zoom: var(--planner-zoom);
 }
 
