@@ -236,12 +236,15 @@ function changeZoom(step) {
 function updateFloatingDock() {
   const viewport = window.visualViewport;
   if (!viewport) {
+    els.floatingModeTools.style.setProperty("--dock-scale", "1");
     els.floatingModeTools.style.setProperty("--dock-shift-x", "0px");
     els.floatingModeTools.style.setProperty("--dock-shift-y", "0px");
     return;
   }
+  const dockScale = 1 / Math.max(1, viewport.scale || 1);
   const shiftX = viewport.offsetLeft;
   const shiftY = viewport.offsetTop + viewport.height - window.innerHeight;
+  els.floatingModeTools.style.setProperty("--dock-scale", String(dockScale));
   els.floatingModeTools.style.setProperty("--dock-shift-x", `${shiftX}px`);
   els.floatingModeTools.style.setProperty("--dock-shift-y", `${shiftY}px`);
 }

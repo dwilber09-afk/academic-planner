@@ -256,6 +256,7 @@ select {
 }
 
 .floating-mode-tools {
+  --dock-scale: 1;
   --dock-shift-x: 0px;
   --dock-shift-y: 0px;
   align-items: center;
@@ -267,12 +268,13 @@ select {
   display: inline-flex;
   gap: 3px;
   left: 50%;
-  max-width: calc(100vw - 20px);
+  max-width: calc((100vw - 20px) / var(--dock-scale));
   overflow-x: auto;
   padding: 4px;
   position: fixed;
   touch-action: none;
-  transform: translate(calc(-50% + var(--dock-shift-x)), var(--dock-shift-y));
+  transform: translate(calc(-50% + var(--dock-shift-x)), var(--dock-shift-y)) scale(var(--dock-scale));
+  transform-origin: center bottom;
   z-index: 40;
   backdrop-filter: blur(12px);
 }
