@@ -485,7 +485,7 @@ select {
 
 .week-wrap {
   display: grid;
-  grid-template-columns: 186px minmax(0, 1fr);
+  grid-template-columns: minmax(154px, 24%) minmax(0, 1fr);
   min-height: 430px;
 }
 
