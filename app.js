@@ -543,10 +543,17 @@ function beginFingerPan(canvas, event) {
   event.preventDefault();
   state.panPointerId = event.pointerId ?? null;
   state.panPoint = { x: event.clientX, y: event.clientY };
-  if (event.pointerId !== undefined && canvas.setPointerCapture) {
-    canvas.setPointerCapture(event.pointerId);
-  }
   return true;
+}
+
+function cancelFingerPan() {
+  state.panPointerId = null;
+  state.panPoint = null;
+  state.panDistance = 0;
+  if (state.panFrame) {
+    cancelAnimationFrame(state.panFrame);
+    state.panFrame = null;
+  }
 }
 
 function moveFingerPan(event) {
@@ -570,13 +577,7 @@ function endFingerPan(event) {
   if (!state.panPoint) return false;
   if (state.panPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.panPointerId) return false;
   event.preventDefault();
-  state.panPointerId = null;
-  state.panPoint = null;
-  state.panDistance = 0;
-  if (state.panFrame) {
-    cancelAnimationFrame(state.panFrame);
-    state.panFrame = null;
-  }
+  cancelFingerPan();
   requestAnimationFrame(updateActiveSurfaceFromView);
   return true;
 }
@@ -653,6 +654,7 @@ function attachDrawing(canvas) {
     const touch = event.changedTouches[0];
     if (!shouldDrawFromTouch(touch)) return;
     event.preventDefault();
+    cancelFingerPan();
     activeTouch.id = touch.identifier;
     state.touchFallbackActive = true;
     beginDraw(canvas, touch);
