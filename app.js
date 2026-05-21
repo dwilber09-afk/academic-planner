@@ -356,7 +356,7 @@ function resizeCanvas(canvas) {
 }
 
 function drawStroke(ctx, stroke) {
-  if (stroke.points.length < 2) return;
+  if (!stroke.points.length) return;
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -364,6 +364,15 @@ function drawStroke(ctx, stroke) {
   ctx.globalAlpha = stroke.tool === "highlighter" ? 0.34 : 1;
   ctx.strokeStyle = stroke.color;
   ctx.lineWidth = stroke.size;
+  if (stroke.points.length === 1) {
+    const point = stroke.points[0];
+    ctx.fillStyle = stroke.color;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, stroke.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.beginPath();
   ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
   for (let i = 1; i < stroke.points.length; i++) {
@@ -617,6 +626,8 @@ function beginDraw(canvas, event) {
     size: state.tool === "eraser" ? state.size * 5 : isHighlighter ? Math.max(10, state.size * 3) : state.size,
     points: [canvasPoint(canvas, event)],
   };
+  const ctx = canvas.getContext("2d");
+  drawStroke(ctx, state.currentStroke);
 }
 
 function moveDraw(canvas, event) {
@@ -636,6 +647,11 @@ function endDraw(canvas, event) {
   if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
   event.preventDefault?.();
   state.lastPointerEventAt = Date.now();
+  const endPoint = canvasPoint(canvas, event);
+  const lastPoint = state.currentStroke.points[state.currentStroke.points.length - 1];
+  if (!lastPoint || Math.hypot(endPoint.x - lastPoint.x, endPoint.y - lastPoint.y) > 0.5) {
+    state.currentStroke.points.push(endPoint);
+  }
   const surface = surfaceForCanvas(canvas);
   const strokes = strokesForSurface(surface);
   strokes.push(state.currentStroke);
