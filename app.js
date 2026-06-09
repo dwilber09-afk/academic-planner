@@ -33,6 +33,7 @@ const state = {
   size: 3,
   activeSurface: "month",
   drawing: false,
+  drawingCanvas: null,
   drawingPointerId: null,
   panPointerId: null,
   panPoint: null,
@@ -621,12 +622,16 @@ function endFingerPan(event) {
 function beginDraw(canvas, event) {
   if (!shouldDrawFromInput(event)) return;
   event.preventDefault?.();
+  if (state.drawing && state.currentStroke) {
+    finishCurrentStroke();
+  }
   state.lastPointerEventAt = Date.now();
   const surface = surfaceForCanvas(canvas);
   setActiveSurface(surface);
   state.drawing = true;
+  state.drawingCanvas = canvas;
   state.drawingPointerId = event.pointerId ?? null;
-  if (event.pointerId !== undefined && canvas.setPointerCapture) {
+  if (event.pointerType === "mouse" && event.pointerId !== undefined && canvas.setPointerCapture) {
     canvas.setPointerCapture(event.pointerId);
   }
   const isHighlighter = state.tool === "highlighter";
@@ -656,6 +661,20 @@ function moveDraw(canvas, event) {
   });
 }
 
+function finishCurrentStroke() {
+  if (!state.drawing || !state.currentStroke || !state.drawingCanvas) return;
+  const surface = surfaceForCanvas(state.drawingCanvas);
+  const strokes = strokesForSurface(surface);
+  strokes.push(state.currentStroke);
+  setStrokesForSurface(surface, strokes);
+  state.currentStroke = null;
+  state.drawing = false;
+  state.drawingCanvas = null;
+  state.drawingPointerId = null;
+  state.touchFallbackActive = false;
+  scheduleCurrentSave();
+}
+
 function endDraw(canvas, event) {
   if (!state.drawing || !state.currentStroke) return;
   if (state.drawingPointerId !== null && event.pointerId !== undefined && event.pointerId !== state.drawingPointerId) return;
@@ -668,18 +687,10 @@ function endDraw(canvas, event) {
     const ctx = canvas.getContext("2d");
     drawStroke(ctx, {
       ...state.currentStroke,
-      points: [lastPoint, endPoint],
+      points: lastPoint ? [lastPoint, endPoint] : [endPoint],
     });
   }
-  const surface = surfaceForCanvas(canvas);
-  const strokes = strokesForSurface(surface);
-  strokes.push(state.currentStroke);
-  setStrokesForSurface(surface, strokes);
-  state.currentStroke = null;
-  state.drawing = false;
-  state.drawingPointerId = null;
-  state.touchFallbackActive = false;
-  scheduleCurrentSave();
+  finishCurrentStroke();
 }
 
 function attachDrawing(canvas) {
@@ -700,9 +711,10 @@ function attachDrawing(canvas) {
   });
 
   canvas.addEventListener("touchstart", (event) => {
-    if (state.drawing || state.touchFallbackActive) return;
     const touch = event.changedTouches[0];
     if (!shouldDrawFromTouch(touch)) return;
+    if (state.touchFallbackActive) finishCurrentStroke();
+    else if (state.drawing) return;
     event.preventDefault();
     cancelFingerPan();
     activeTouch.id = touch.identifier;
