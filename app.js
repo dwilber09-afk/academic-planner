@@ -38,6 +38,7 @@ const state = {
   panPoint: null,
   panFrame: null,
   panDistance: 0,
+  saveTimer: null,
   lastPointerEventAt: 0,
   touchFallbackActive: false,
   currentStroke: null,
@@ -406,6 +407,10 @@ function loadCurrent() {
 }
 
 function saveCurrent() {
+  if (state.saveTimer) {
+    clearTimeout(state.saveTimer);
+    state.saveTimer = null;
+  }
   writeStrokes(keyMonth(), state.monthStrokes);
   writeStrokes(keyDay(), state.dayStrokes);
   writeNotes(keyMonthNotes(), state.monthNotes);
@@ -413,6 +418,11 @@ function saveCurrent() {
   writeStickers(keyMonthStickers(), state.monthStickers);
   writeStickers(keyDayStickers(), state.dayStickers);
   updateBackupReminder();
+}
+
+function scheduleCurrentSave() {
+  if (state.saveTimer) clearTimeout(state.saveTimer);
+  state.saveTimer = setTimeout(saveCurrent, 500);
 }
 
 function collectPlannerBackup() {
@@ -655,6 +665,11 @@ function endDraw(canvas, event) {
   const lastPoint = state.currentStroke.points[state.currentStroke.points.length - 1];
   if (!lastPoint || Math.hypot(endPoint.x - lastPoint.x, endPoint.y - lastPoint.y) > 0.5) {
     state.currentStroke.points.push(endPoint);
+    const ctx = canvas.getContext("2d");
+    drawStroke(ctx, {
+      ...state.currentStroke,
+      points: [lastPoint, endPoint],
+    });
   }
   const surface = surfaceForCanvas(canvas);
   const strokes = strokesForSurface(surface);
@@ -664,8 +679,7 @@ function endDraw(canvas, event) {
   state.drawing = false;
   state.drawingPointerId = null;
   state.touchFallbackActive = false;
-  saveCurrent();
-  redraw();
+  scheduleCurrentSave();
 }
 
 function attachDrawing(canvas) {
@@ -686,7 +700,7 @@ function attachDrawing(canvas) {
   });
 
   canvas.addEventListener("touchstart", (event) => {
-    if (Date.now() - state.lastPointerEventAt < 250) return;
+    if (state.drawing || state.touchFallbackActive) return;
     const touch = event.changedTouches[0];
     if (!shouldDrawFromTouch(touch)) return;
     event.preventDefault();
