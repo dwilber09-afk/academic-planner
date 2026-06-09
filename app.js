@@ -695,20 +695,22 @@ function endDraw(canvas, event) {
 
 function attachDrawing(canvas) {
   const activeTouch = { id: null };
-  const touchOptions = { passive: false };
+  const inputOptions = { passive: false };
 
   canvas.addEventListener("pointerdown", (event) => {
     if (!beginFingerPan(canvas, event)) beginDraw(canvas, event);
-  });
+  }, inputOptions);
   canvas.addEventListener("pointermove", (event) => {
     if (!moveFingerPan(event)) moveDraw(canvas, event);
-  });
+  }, inputOptions);
   canvas.addEventListener("pointerup", (event) => {
     if (!endFingerPan(event)) endDraw(canvas, event);
-  });
+  }, inputOptions);
   canvas.addEventListener("pointercancel", (event) => {
     if (!endFingerPan(event)) endDraw(canvas, event);
-  });
+  }, inputOptions);
+
+  if ("PointerEvent" in window) return;
 
   canvas.addEventListener("touchstart", (event) => {
     const touch = event.changedTouches[0];
@@ -720,7 +722,7 @@ function attachDrawing(canvas) {
     activeTouch.id = touch.identifier;
     state.touchFallbackActive = true;
     beginDraw(canvas, touch);
-  }, touchOptions);
+  }, inputOptions);
 
   canvas.addEventListener("touchmove", (event) => {
     if (!state.touchFallbackActive) return;
@@ -728,7 +730,7 @@ function attachDrawing(canvas) {
     if (!shouldDrawFromTouch(touch)) return;
     event.preventDefault();
     moveDraw(canvas, touch);
-  }, touchOptions);
+  }, inputOptions);
 
   canvas.addEventListener("touchend", (event) => {
     if (!state.touchFallbackActive) return;
@@ -738,7 +740,7 @@ function attachDrawing(canvas) {
       endDraw(canvas, touch);
     }
     activeTouch.id = null;
-  }, touchOptions);
+  }, inputOptions);
 
   canvas.addEventListener("touchcancel", (event) => {
     if (!state.touchFallbackActive) return;
@@ -748,7 +750,7 @@ function attachDrawing(canvas) {
       endDraw(canvas, touch);
     }
     activeTouch.id = null;
-  }, touchOptions);
+  }, inputOptions);
 }
 
 function setTool(tool) {
